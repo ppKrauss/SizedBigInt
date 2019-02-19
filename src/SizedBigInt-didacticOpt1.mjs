@@ -109,10 +109,10 @@ export default class SizedBigInt {
       let b = SizedBigInt_b.toString(2)
       return (a>b)? 1: ( (a==b)? 0: -1 )
     } else { // numeric order:
-      let bitsDiff = SizedBigInt_a.bits-SizedBigInt_b.bits
+      let bitsDiff = SizedBigInt_a.bits - SizedBigInt_b.bits
       if (bitsDiff) return bitsDiff;
       else {
-        let bigDiff = SizedBigInt_a.val-SizedBigInt_b.val
+        let bigDiff = SizedBigInt_a.val - SizedBigInt_b.val
         return (bigDiff==0n)? 0: ( (bigDiff>0n)? 1: -1 )
       }
     }

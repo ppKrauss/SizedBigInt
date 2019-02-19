@@ -1,19 +1,17 @@
 /**
- * Didactic/simplified  implementaion with the "hidden bit".
- * Only illustrative, please avoid to use.
- * Implements only base4h and hierarchical binary strings.
- * Sized BigInt's (SizedBigInt) are arbitrary-precision integers with defined number of bits.
- * Each instance is a pair (size,number). Input and output accepts many optional representations.
+ * SizedBigInt class.
+ * Sized BigInt's are arbitrary-precision integers with controled number of bits.
+ * Each instance is a pair (bits,val) with the BigInt value and the number of bits.
+ * Input and output accepts many optional representations.
+ * String output use the leading zeros to diffrenciate numbers (00 is not 0).
+ *
+ * Version 0.2.1  https://github.com/ppKrauss/SizedBigInt
+ * License CC0    https://creativecommons.org/publicdomain/zero/1.0/
  */
-
+ 
 export default class SizedBigInt { // (hidden bit version)
 
   constructor(val,radix,bits,maxBits) {
-    this.kx = { // base4h alphabet translations to and from binary string:
-      alpha_tr:   { "G":"0", "H":"1", "0":"00", "1":"01", "2":"10", "3":"11" }
-      ,alpha_itr: { "0":"G", "1":"H", "00":"0", "01":"1", "10":"2", "11":"3" }
-    };
-
     let t = typeof val;
     if (t=='object') {
        if (val instanceof SizedBigInt) {

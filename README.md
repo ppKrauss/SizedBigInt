@@ -1,23 +1,30 @@
 # SizedBigInt
 
-Sized BigInt's are arbitrary-precision integers with defined number of bits, to represent hashes, labels and hierarchical indexes. All can use digits as character-strings, differenciating `0` and `00`, `1` and `001`, but preserving all other numeric interpretations, like order (`002`&gt;`001`) and freedom for represantation ([some other radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems)).  
+Sometimes we need [natural numbers](https://en.wikipedia.org/wiki/Natural_number), but a kind of number where 0 is not equal to 00.
+
+Sized BigInt's are arbitrary-precision integers ([BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)) with defined number of bits, to represent hashes, labels, hierarchical indexes or any other that need to differenciate `0` and `00`,  preserving all other numeric interpretations, like order (`002`&gt;`001`) and freedom to translate positional  notation to  [some especific radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems) (e.g. binary to quaternary or hexadecimal).
+
+<!--
+To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`](http://ppKrauss.github.com/SizedBigInt).
+-->
 
 ## Basic examples
 
-The examples can be mathematically described as a **finite set** of numeric representations.  Limiting examples in 8 bits:
+Any example can be mathematically described as a **finite set** of numeric representations.  Limiting examples in 8 bits:
 
-* Example with binary representations:  <i>X</i><sub>1</sub>&nbsp;=&nbsp;{`0`, `1`} &nbsp; <i>X</i><sub>2</sub>&nbsp;=&nbsp;{`0`, `00`, `01`, `1`, `10`, `11`} &nbsp; ... <br/><i>X</i><sub>8</sub>&nbsp;=&nbsp;{`0`, `00`, `000`, `000`,..., `00000000`, `00000001`, ..., `11111111`}.
+* Example with binary representations:  <i>X</i><sub>1</sub>&nbsp;=&nbsp;{`0`, `1`} &nbsp; <i>X</i><sub>2</sub>&nbsp;=&nbsp;{`0`, `00`, `01`, `1`, `10`, `11`} &nbsp; <i>X</i><sub>3</sub>&nbsp;=&nbsp;... <br/><i>X</i><sub>8</sub>&nbsp;=&nbsp;{`0`, `00`, `000`, `000`,..., `00000000`, `00000001`, ..., `11111111`}.
 
-* The same set <i>X</i><sub>8</sub> without some (non-compatible) items, in [radix 4](https://en.wikipedia.org/wiki/Quaternary_numeral_system) representation: <i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
+* The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (radix4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
 
 Ordering the illustred elements. The order is arbitrary for a set, but to group or list elements we can adopt some order.  The main ordering options are the lexicographic, to enhance "same prefix" grouping or hierarchy, and the numeric orderder using the size as first criterium.
 
-Here an illustration of a list of elements with different representations, and in lexicographic order:
+Here a set of elements illustrated with different representations, listed by lexicographic order of the binary representation:
 
 &nbsp;&nbsp; TABLE-1
 
 ```
-    (size,value)   Binary representation    Radix4 representation
+                    Representation   
+    (size,value)   Binary              Radix4
     (1,0)	    0
     (2,0)	    00                       0
     (3,0)	    000
@@ -38,11 +45,11 @@ Here an illustration of a list of elements with different representations, and i
 ```
 ## Definition
 
-Each element of this set can be mapped into a *size* (bits or number of digits) and a Natural number (*value*). &nbsp; PS:  the usual term for "size of the string" is *length* (or [bit-length](https://en.wikipedia.org/wiki/Bit-length)), so we prefer to use it in the formal definitions.
+Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *class of sets* is the mathematical reference concept used to specification and implementation.  
 
-So we can say that the elements of a set  *X* of this (named) class of sets are ordered pairs (*l*,*n*) of length *l* and numeric value *n*. See the  table illustrating.
+As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit-length *l* (the "size" in bits) and numeric value *n*, that is a Natural number.
 
-Supposing a maximal length *lmax*, the set <b><i>X</i><sub>L</sub></b> is a class in *L*:
+Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>L</sub></b> is a class in *L*:
 
 ![](assets/equations01.png)
 
@@ -128,3 +135,7 @@ Run *demo* with NodeJS using `node  --experimental-modules demo.mjs | more`.
    1.2. With a pair (*size*,*value*) as in the set definition.  [SizedBigInt-didacticOpt2.mjs](src/SizedBigInt-didacticOpt2.mjs).
 
 2. Complete implementations: see ...
+
+------
+
+&#160;&#160;Contents, data and source-code of this git repository are dedicated to the public domain.<br/>&#160;&#160;[![](assets/CC0-logo-200px.png)](https://creativecommons.org/publicdomain/zero/1.0/)
