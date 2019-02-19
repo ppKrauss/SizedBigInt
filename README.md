@@ -15,25 +15,26 @@ Ordering the illustred elements. The order is arbitrary for a set, but to group 
 
 Here an illustration of a list of elements with different representations, and in lexicographic order:
 
-<center>TABLE-1</center>
+&nbsp;&nbsp; TABLE-1
+
 ```
     (size,value)   Binary representation    Radix4 representation
-    (1,0)	       0
-    (2,0)           00                       0
-    (3,0)	       000
-    (4,0)	       0000                     00
-    (5,0)	       00000
-    (6,0)	       000000                   000
-    (7,0)	       0000000
-    (8,0)	       00000000                 0000
-    (8,1)	       00000001                 0001
-    (7,1)	       0000001
-    (8,2)	       00000010                 0002
-    (8,3)	       00000011                 0003
-    (6,1)	       000001                   001
-    (7,2)	       0000010
-    (8,4)	       00000100                 0010
-    (8,5)	       00000101                 0011
+    (1,0)	    0
+    (2,0)	    00                       0
+    (3,0)	    000
+    (4,0)	    0000                     00
+    (5,0)	    00000
+    (6,0)	    000000                   000
+    (7,0)	    0000000
+    (8,0)	    00000000                 0000
+    (8,1)	    00000001                 0001
+    (7,1)	    0000001
+    (8,2)	    00000010                 0002
+    (8,3)	    00000011                 0003
+    (6,1)	    000001                   001
+    (7,2)	    0000010
+    (8,4)	    00000100                 0010
+    (8,5)	    00000101                 0011
     ...            ...                      ...
 ```
 ## Definition
@@ -60,25 +61,26 @@ How to represent `0` and `1` in radix4?
 
 The solution is to use a fake digit that represent these values. To avoid cofusion with hexadecimal letters we can start with `G` to represent `0` and `H` to represent `1`.  The will be named **half digits** because  the other radix4 represent two bits, twice.
 
-<center>TABLE-2</center>
+&nbsp;&nbsp; TABLE-2
+
 ```
     (size,value)    Binary                   Radix4h
-    (1,0)	       0                        G
-    (2,0)	       00                       0
-    (3,0)	       000                      0G
-    (4,0)	       0000                     00
-    (5,0)	       00000                    00G
-    (6,0)	       000000                   000
-    (7,0)	       0000000                  000G
-    (8,0)	       00000000                 0000
-    (8,1)	       00000001                 0001
-    (7,1)	       0000001                  000H
-    (8,2)	       00000010                 0002
-    (8,3)	       00000011                 0003
-    (6,1)	       000001                   001
-    (7,2)	       0000010                  001G
-    (8,4)	       00000100                 0010
-    (8,5)	       00000101                 0011
+    (1,0)	    0                        G
+    (2,0)	    00                       0
+    (3,0)	    000                      0G
+    (4,0)	    0000                     00
+    (5,0)	    00000                    00G
+    (6,0)	    000000                   000
+    (7,0)	    0000000                  000G
+    (8,0)	    00000000                 0000
+    (8,1)	    00000001                 0001
+    (7,1)	    0000001                  000H
+    (8,2)	    00000010                 0002
+    (8,3)	    00000011                 0003
+    (6,1)	    000001                   001
+    (7,2)	    0000010                  001G
+    (8,4)	    00000100                 0010
+    (8,5)	    00000101                 0011
     ...             ...                      ...
     (7,127)         1111111                  333H
     (8,254)         11111110                 3332
