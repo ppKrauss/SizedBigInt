@@ -1,7 +1,6 @@
 # SizedBigInt
-Sized BigInt's are arbitrary-precision integers with defined number of bits, to represent hashes, labels and hierarchical indexes.
 
-Hierarchical identifiers, labels and indexes... All can use digits as character-strings, differenciating `0` and `00`, `1` and `001`, but preserving all other numeric interpretations, like order (`002>001`) and freedom for represantation ([some other radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems)).  
+Sized BigInt's are arbitrary-precision integers with defined number of bits, to represent hashes, labels and hierarchical indexes. All can use digits as character-strings, differenciating `0` and `00`, `1` and `001`, but preserving all other numeric interpretations, like order (`002`&gt;`001`) and freedom for represantation ([some other radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems)).  
 
 ## Basic examples
 
