@@ -85,18 +85,26 @@ The solution is to use a fake digit that represent these values. To avoid cofusi
     (8,254)         11111110                 3332
     (8,255)         11111111                 3333
 ```
-The complete translation table, from binary to radix4 representations, is:
+Radix4h numbers are strings with usual radix4 pattern and the halfDigit as optional suffix:
+```js
+/^([0123]*)([GH])?$/
+```
+To translate from binary, only values with odd number of bits will be translate the last bit as halfDigit. The complete translation table, from binary to radix4 representations, is:
 
 ```json
 { "0":"G", "1":"H", "00":"0", "01":"1", "10":"2", "11":"3" }
 ```
-The Radix4h
+Binary prefixes have always 2, 4, 6 or more digits, a multiple of 2. Remained 
 
 ### Radix16h
 
 The problem here is bigger tham radix4 because each hexadecimal digit  needs four binary digits. The solution is analog: to add "fake digits".
 
-The complete translation table, from binary to radix16 representations, is:
+Radix16h numbers are strings with usual radix16 pattern and an optional final digit:
+```js
+/^([0-9a-f]*)([G-T])?$/
+```
+To translate from a binary with *b* bits, there are `b % 4` last bits to be translated as special digits.  Cuting the value as prefix and suffix, the prefix will be translated by usual hexadecimal vertion. The complete translation table for last bits is:
 
 ```json
 {
