@@ -94,7 +94,6 @@ To translate from binary, only values with odd number of bits will be translate 
 ```json
 { "0":"G", "1":"H", "00":"0", "01":"1", "10":"2", "11":"3" }
 ```
-Binary prefixes have always 2, 4, 6 or more digits, a multiple of 2. Remained 
 
 ### Radix16h
 
