@@ -45,11 +45,9 @@ Here a set of elements illustrated with different representations, listed by lex
 ```
 ## Definition
 
-Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *class of sets* is the mathematical reference concept used to specification and implementation.  
+Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *set* is the mathematical reference-concept for implementations.
 
-As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit-length *l*  and numeric value *n*, a Natural number.
-
-Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>L</sub></b> is a finite set limited by  *L*:
+As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit-length *l*  and numeric value *n*, a Natural number.  Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>L</sub></b> is a finite set limited by  *L*:
 
 ![](assets/equations01.png)
 
