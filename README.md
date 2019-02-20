@@ -8,15 +8,23 @@ Sized BigInt's are arbitrary-precision integers ([BigInt](https://developer.mozi
 To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`](http://ppKrauss.github.com/SizedBigInt).
 -->
 
+## Terminology
+
+* Base2, base4, base16, base32, base64: the web standards, as  [RFC&#160;4648](https://tools.ietf.org/html/rfc4648), use the term "base", but Javascript (ECMA-262) adopted the term "radix" in [`parseInt(string, radix)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt). The preferred term is *base*.
+
+* The term "size" was used in the title of this project, but the usual term for "size of the string" is *length* and, for binary numbers,  [bit-length](https://en.wikipedia.org/wiki/Bit-length),  the preferred term.
+
+* Set, element, number,   natural number and integer are terms of the [Set Theory](https://en.wikipedia.org/wiki/Set_theory), the formal mathematical foundation used here.  In   implementation context the  Javascript semantic for integer, class, number, etc. is preferred.
+
 ## Basic examples
 
-Any example can be mathematically described as a **finite set** of numeric representations.  Limiting examples in 8 bits:
+The following examples  can be mathematically described as a **finite sets** of numeric representations.  Limiting examples in 8 bits:
 
-* Example with binary representations:  <i>X</i><sub>1</sub>&nbsp;=&nbsp;{`0`, `1`} &nbsp; <i>X</i><sub>2</sub>&nbsp;=&nbsp;{`0`, `00`, `01`, `1`, `10`, `11`} &nbsp; <i>X</i><sub>3</sub>&nbsp;=&nbsp;... <br/><i>X</i><sub>8</sub>&nbsp;=&nbsp;{`0`, `00`, `000`, `000`,..., `00000000`, `00000001`, ..., `11111111`}.
+* Samples of binary representations:  <i>X</i><sub>1</sub>&nbsp;=&nbsp;{`0`, `1`} &nbsp; <i>X</i><sub>2</sub>&nbsp;=&nbsp;{`0`, `00`, `01`, `1`, `10`, `11`} &nbsp; <i>X</i><sub>3</sub>&nbsp;=&nbsp;... <br/><i>X</i><sub>8</sub>&nbsp;=&nbsp;{`0`, `00`, `000`, `000`,..., `00000000`, `00000001`, ..., `11111111`}.
 
-* The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (radix4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
+* The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (base4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
 
-Ordering the illustred elements. The order is arbitrary for a set, but to group or list elements we can adopt some order.  The main ordering options are the lexicographic, to enhance "same prefix" grouping or hierarchy, and the numeric orderder using the size as first criterium.
+Ordering the illustred elements. The order in ordinarry mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **numeric orderder**, using the size as first criterium.
 
 Here a set of elements illustrated with different representations, listed by lexicographic order of the binary representation:
 
@@ -24,7 +32,7 @@ Here a set of elements illustrated with different representations, listed by lex
 
 ```
                     Representation   
-    (size,value)   Binary              Radix4
+    (size,value)   Binary              Base4
     (1,0)	    0
     (2,0)	    00                       0
     (3,0)	    000
@@ -53,22 +61,22 @@ As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](h
 
 ## Representations
 
-Natural numbers can be expressed with [positional notation](https://en.wikipedia.org/wiki/Positional_notation), using the rule of "remove [leading zeros](https://en.wikipedia.org/wiki/Leading_zero)".  The rule is used in any radix representation.
+Natural numbers can be expressed with [positional notation](https://en.wikipedia.org/wiki/Positional_notation), using the rule of "remove [leading zeros](https://en.wikipedia.org/wiki/Leading_zero)".  The rule is used in any base (radix) representation.
 
-The SizedBigInt's are like BigInt's **without the rule of remove leading zeros**, and the SizedBigInt must be the same in any radix representation. This last condiction is a problem: as we see at table-1, there are no radix4 representation for `0`, because each digit in radix4 need 2 bits.
+The SizedBigInt's are like BigInt's **without the rule of remove leading zeros**, and the SizedBigInt must be the same in any base representation. This last condiction is a problem: as we see at table-1, there are no base4 representation for `0`, because each digit in base4 need 2 bits.
 
 ### Binary
 The binary representation is the simplest and the canonic one, so it is the reference-representation.
 
-### Radix4h
-How to represent `0` and `1` in radix4?
+### Base4h
+How to represent `0` and `1` in base4?
 
-The solution is to use a fake digit that represent these values. To avoid cofusion with hexadecimal letters we can start with `G` to represent `0` and `H` to represent `1`.  The will be named **half digits** because  the other radix4 represent two bits, twice.
+The solution is to use a fake digit that represent these values. To avoid cofusion with hexadecimal letters we can start with `G` to represent `0` and `H` to represent `1`.  The will be named **half digits** because  the other base4 represent two bits, twice.
 
 &nbsp;&nbsp; TABLE-2
 
 ```
-    (size,value)    Binary                   Radix4h
+    (size,value)    Binary                   Base4h
     (1,0)	    0                        G
     (2,0)	    00                       0
     (3,0)	    000                      0G
@@ -90,25 +98,34 @@ The solution is to use a fake digit that represent these values. To avoid cofusi
     (8,254)         11111110                 3332
     (8,255)         11111111                 3333
 ```
-Radix4h numbers are strings with usual radix4 pattern and the halfDigit as optional suffix:
+Base4h numbers are strings with usual base4 pattern and the halfDigit as optional suffix:
 ```js
 /^([0123]*)([GH])?$/
 ```
-To translate from binary, only values with odd number of bits will be translate the last bit as halfDigit. The complete translation table, from binary to radix4 representations, is:
+To translate from binary, only values with odd number of bits will be translate the last bit as halfDigit. The complete translation table, from binary to base4 representations, is:
 
 ```json
 { "0":"G", "1":"H", "00":"0", "01":"1", "10":"2", "11":"3" }
 ```
 
-### Radix16h
+### Base16h
 
-The problem here is bigger tham radix4 because each hexadecimal digit  needs four binary digits. The solution is analog: to add "fake digits".
+We can use base16 (hexadecimal representation) for any integer, but when controling the bit-length can use only base16-compatible lengths: 4 bits, 8 bits, 12 bits, ... multiples of 4.
 
-Radix16h numbers are strings with usual radix16 pattern and an optional final digit:
+So, how to represent `0`, `1`, `00`, `01`, `10`, ...  ?
+
+The solution is to extend a hexadecimal representation, in a similar way to the previous one used for [base4h](#Base4h): the last digit as a fake-digit that can represent all these incompatible values  &mdash; so using the halphDigit values `G` and `H` for 1-bit values, and including more values for 2 bits (4 values) and 3 bits (8 values). The total is 2+4+8=14 values, they can be represented by the letters `G` to `T`. The name of this new representation is **Base16h**, because it is the usual Base16 "plus an optional halfDigit", by **h** shortening *half*.
+
+Base16h numbers are strings with usual base16 pattern and an optional final exotic digit:
 ```js
 /^([0-9a-f]*)([G-T])?$/
 ```
-To translate from a binary with *b* bits, there are `b % 4` last bits to be translated as special digits.  Cuting the value as prefix and suffix, the prefix will be translated by usual hexadecimal vertion. The complete translation table for last bits is:
+
+To translate from a binary string with *b* bits, there are `b % 4` last bits to be translated as special digits. Splitting the value as binary prefix (`part[0]`) and suffix (`part[1]` with 1, 2 or 3 last bits),
+```js
+let part = strbin.match(/^((?:[01]{4,4})*)([01]*)$/)
+```
+the prefix will be translated to usual hexadecimal number, and the suffix, when exists,  translated by this complete "bits to haslDigit" map:
 
 ```json
 {
@@ -117,7 +134,6 @@ To translate from a binary with *b* bits, there are `b % 4` last bits to be tran
  "000":"M","001":"N","010":"O","011":"P","100":"Q","101":"R","110":"S","111":"T"
 }
 ```
-
 -------------
 
 ## Implementation using BigInt
