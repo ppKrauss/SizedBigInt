@@ -112,13 +112,39 @@ To translate from binary, only values with odd number of bits will be translate 
 
 We can use base16 (hexadecimal representation) for any integer, but when controling the bit-length can use only base16-compatible lengths: 4 bits, 8 bits, 12 bits, ... multiples of 4.
 
-So, how to represent `0`, `1`, `00`, `01`, `10`, ...  ?
+So, how to represent sized integers as `0`, `1`, `00`, `01`, `10`, ...  ?
 
 The solution is to extend a hexadecimal representation, in a similar way to the previous one used for [base4h](#Base4h): the last digit as a fake-digit that can represent all these incompatible values  &mdash; so using the halphDigit values `G` and `H` for 1-bit values, and including more values for 2 bits (4 values) and 3 bits (8 values). The total is 2+4+8=14 values, they can be represented by the letters `G` to `T`. The name of this new representation is **Base16h**, because it is the usual Base16 "plus an optional halfDigit", by **h** shortening *half*.
 
 Base16h numbers are strings with usual base16 pattern and an optional final exotic digit:
 ```js
 /^([0-9a-f]*)([G-T])?$/
+```
+&nbsp;&nbsp; TABLE-3
+
+```
+value    Binary     Base16h
+(1,0)	0       	G
+(2,0)	00      	I
+(3,0)	000     	M
+(4,0)	0000    	0
+(5,0)	00000   	0G
+(6,0)	000000  	0I
+(7,0)	0000000 	0M
+(8,0)	00000000	00
+(8,1)	00000001	01
+(7,1)	0000001 	0N
+(8,2)	00000010	02
+(8,3)	00000011	03
+(6,1)	000001  	0J
+...
+(6,63) 	111111  	fL
+(7,126)	1111110 	fS
+(8,252)	11111100	fc
+(8,253)	11111101	fd
+(7,127)	1111111 	fT
+(8,254)	11111110	fe
+(8,255)	11111111	ff
 ```
 
 To translate from a binary string with *b* bits, there are `b % 4` last bits to be translated as special digits. Splitting the value as binary prefix (`part[0]`) and suffix (`part[1]` with 1, 2 or 3 last bits),
