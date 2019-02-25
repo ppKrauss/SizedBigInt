@@ -12,7 +12,11 @@
 export default class SizedBigInt { // (hidden bit version)
 
   constructor(val,radix,bits,maxBits) {
-    let t = typeof val;
+    this.kx = { // base4h alphabet translations to and from binary string:
+      alpha_tr:   { "G":"0", "H":"1", "0":"00", "1":"01", "2":"10", "3":"11" }
+      ,alpha_itr: { "0":"G", "1":"H", "00":"I","01":"J","10":"K","11":"L"}
+    };
+    let t = typeof val
     if (t=='object') {
        if (val instanceof SizedBigInt) {
          this.val = val.val // make a clone

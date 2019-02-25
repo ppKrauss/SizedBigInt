@@ -3,7 +3,7 @@
 
 'use strict';
 
-import SizedBigInt from './SizedBigInt-didacticOpt2.mjs'; // change to Opt1
+import SizedBigInt from './SizedBigInt-didacticOpt1.mjs'; // change to Opt1
 
 let x = [
   new SizedBigInt(1n),  new SizedBigInt(),  new SizedBigInt(0n),
