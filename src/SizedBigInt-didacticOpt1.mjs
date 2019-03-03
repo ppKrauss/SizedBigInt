@@ -1,9 +1,13 @@
 /**
- * Didactic/simplified  implementaion. Only illustrative, please avoid to use.
+ * SizedBigInt class. This Opt1 implements internal (bits,val) representation.
+ * Didactic/simplified implementaion. Only illustrative, please avoid to use.
+ *
  * Implements only base4h and hierarchical binary strings.
  * Sized BigInt's (SizedBigInt) are arbitrary-precision integers with defined number of bits.
  * Each instance is a pair (size,number). Input and output accepts many optional representations.
- * See also bitwise operations at https://github.com/GoogleChromeLabs/jsbi#why
+ *
+ * License CC0   https://creativecommons.org/publicdomain/zero/1.0
+ * Original (C) 2019 by ppkrauss, source at https://github.com/ppKrauss/SizedBigInt
  */
 
 export default class SizedBigInt {
@@ -22,6 +26,7 @@ export default class SizedBigInt {
     }
     // set to default values when 0, null or undefined:
     if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=64
+
     this.maxBits = maxBits
     if (t=='string')
       this.fromString(val,radix)
@@ -37,20 +42,21 @@ export default class SizedBigInt {
   // Input methods:
 
   fromString(val,radix=4) {
-    return (radix==4)
+    return (radix==4 || radix=='4h')
       ? this.fromBase4(val)
       : this.fromBinaryString(val);
   }
 
   fromInt(val,bits=0) {
     let t = typeof val
-    if (t == 'bigint' || t=='number') {
-      this.val  = BigInt.asUintN(
-        this.maxBits,  (t=='number')? String(val): val
-      ); // cast to unsigned integer with maxBits
-      let l = this.val.toString(2).length
+    let isNum = (t=='number')
+    if (t == 'bigint' || isNum) {
+      if (isNum)  this.val = BigInt.asUintN( this.maxBits, String(val) );
+      else this.val = val; // is a clone?
+      let l = val.toString(2).length  // ? check https://stackoverflow.com/q/54758130/287948
       this.bits = bits? bits: l;
-      if (l>this.bits) throw new Error("input bits invalid");
+      if (l>this.bits) throw new Error("invalid input value, bigger than input bit-length");
+      if (this.bits>this.maxBits) throw new Error(`bit-length ${val} exceeded the limit ${this.maxBits}`);
     } else {
       this.val  = null
       this.bits = 0;
@@ -73,21 +79,25 @@ export default class SizedBigInt {
   }
 
   // // //
-  // Getters and output methods:
+  // Getters:
 
   get value() { return [this.bits,this.val] }
+
+  // // //
+  // Output and other non-invasive methods (that not changes internal state):
 
   toString(radix) {
     if (radix==2)
       return this.val.toString(2).padStart(this.bits,'0');
-    else if (radix!=4)
-      return `[${this.bits},${this.val}]`; // for debug output (not coercing to array)
+    else if (radix!=4 && radix!='4h') // debug debug output
+      return `[${this.bits},${this.val}]`; // (not coercing to array)
     let b = this.toString(2) // recurrence
     let r = ''
     for (let i=0; i<b.length; i=i+2)
       r += this.kx.alpha_itr[ b.charAt(i)+b.charAt(i+1) ];
     return r;
   }
+
 
   // // //
   // Order:

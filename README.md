@@ -2,7 +2,7 @@
 
 Sometimes we need [natural numbers](https://en.wikipedia.org/wiki/Natural_number), but a kind of number where 0 is not equal to 00.
 
-Sized BigInt's are arbitrary-precision integers ([BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)) with defined number of bits, to represent hashes, labels, hierarchical indexes or any other that need to differenciate `0` and `00`,  preserving all other numeric interpretations, like order (`002`&gt;`001`) and freedom to translate its positional  notation to  [some especific radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems) (e.g. binary to quaternary or hexadecimal).
+Sized BigInt's are arbitrary-precision integers ([BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)) with defined number of bits, to represent hashes, labels, encodings, hierarchical indexes or any other that need to differenciate `0` and `00`,  preserving all other numeric interpretations, like order (`002`&gt;`001`) and the freedom to translate its positional  notation to  [some especific radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems) (e.g. binary to quaternary or hexadecimal).
 
 <!--
 To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`](http://ppKrauss.github.com/SizedBigInt).
@@ -10,11 +10,21 @@ To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`
 
 ## Terminology
 
-* Base2, base4, base16, base32, base64: the web standards, as  [RFC&#160;4648](https://tools.ietf.org/html/rfc4648), use the term "base", but Javascript (ECMA-262) adopted the term "radix" in [`parseInt(string, radix)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt). The preferred term is *base*.
+* Base: the web standards, as  [RFC&#160;4648](https://tools.ietf.org/html/rfc4648), use the term "base", but Javascript (ECMA-262) adopted the term "radix" in [`parseInt(string, radix)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt). The preferred term is *base*.
 
-* The term "size" was used in the title of this project, but the usual term for "size of the string" is *length* and, for binary numbers,  [bit-length](https://en.wikipedia.org/wiki/Bit-length),  the preferred term.
+* Base alphabet: is the "encoding alphabet", a set of UTF-8 symbols used as digit values of a specific base.
 
-* Set, element, number,   natural number and integer are terms of the [Set Theory](https://en.wikipedia.org/wiki/Set_theory), the formal mathematical foundation used here.  In   implementation context the  Javascript semantic for integer, class, number, etc. is preferred.
+* Base label: each pair (base,alphabet) need a short label. In the [*SizedBigInt class*](src/SizedBigInt.mjs) some labels was defined: `base2`, `base4`, `base4h`, `base8`, `base16`, `base16h`, `base32`, `base32ghs`, `base32hex`, `base32pt`, `base32rfc`, `base64`, `base64url`,  `base64rfc`.
+
+* Binary and base2: sometimes  is necessary to remember that a BigInt is an internal *binary* representation. The preferred term for string-representation is *base2*.
+
+* Default alphabet: is the alphabet adopted as standard for a specific base, associated with the label "baseX", for example "base4" is a synonymous for "base4h" in the SizedBigInt conventions.
+
+* Padding: SizedBigInt's are numbers where *padding zeros* make difference (0 is not equal to 00). In some other conventions for base-encoded data, the padding is maked by a character like "=", so, it must be converted to zero.
+
+* Set, element, number, natural number and integer are terms of the [Set Theory](https://en.wikipedia.org/wiki/Set_theory), the formal mathematical foundation used here.  In implementation context the  Javascript semantic for integer, class, number, etc. is preferred.
+
+* Size and length: The term "size" was used in the title of this project, but the usual term for "size of the string" is *length* and, for binary numbers,  [bit-length](https://en.wikipedia.org/wiki/Bit-length),  the preferred term.
 
 ## Basic examples
 
@@ -24,7 +34,7 @@ The following examples  can be mathematically described as a **finite sets** of 
 
 * The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (base4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
 
-Ordering the illustred elements. The order in ordinarry mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **numeric orderder**, using the size as first criterium.
+Ordering the illustred elements. The order in ordinarry mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **numeric order**, using the bit-length as first criterium.
 
 Here a set of elements illustrated with different representations, listed by lexicographic order of the binary representation:
 
@@ -51,13 +61,14 @@ Here a set of elements illustrated with different representations, listed by lex
     (8,5)	    00000101                 0011
     ...            ...                      ...
 ```
-## Definition
+## Formal definition
 
 Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *set* is the mathematical reference-concept for implementations.
 
-As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit-length *l*  and numeric value *n*, a Natural number.  Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>L</sub></b> is a finite set limited by  *L*:
+As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit-length *l*  and numeric value *n*, a Natural number.  Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>lmax</sub></b> is a SizedBigInt set constrained by *L*:
+<!--![](assets/equations02.344px.png)-->
 
-![](assets/equations01.png)
+![](assets/equations02.png)
 
 ## Representations
 
@@ -65,13 +76,16 @@ Natural numbers can be expressed with [positional notation](https://en.wikipedia
 
 The SizedBigInt's are like BigInt's **without the rule of remove leading zeros**, and the SizedBigInt must be the same in any base representation. This last condiction is a problem: as we see at table-1, there are no base4 representation for `0`, because each digit in base4 need 2 bits.
 
-### Binary
-The binary representation is the simplest and the canonic one, so it is the reference-representation.
+### Base2
+The base2 representation is the simplest and the canonic one. The **SizedBigInt Base2 string representation** is the usual base2 augemented with the "use leading zeros" rule. So `00` is a valid SizedBigInt Base2 number, and is not equal to usual `0`.
+
+<!--, so it is the reference-representation.-->
 
 ### Base4h
-How to represent `0` and `1` in base4?
 
-The solution is to use a fake digit that represent these values. To avoid cofusion with hexadecimal letters we can start with `G` to represent `0` and `H` to represent `1`.  The will be named **half digits** because  the other base4 represent two bits, twice.
+How to convert base2 one-digit numbers `0` and `1` to base4? <br/>(we talking about **SizedBigInt Base4 string representation** illustred at table-1)
+
+The solution is to use a fake digit that represent these values. To avoid cofusion with hexadecimal letters we can start with `G` to represent `0` and `H` to represent `1`.  It will be named **half digits** because the ordinary base4 digits use two bits.
 
 &nbsp;&nbsp; TABLE-2
 
@@ -98,7 +112,8 @@ The solution is to use a fake digit that represent these values. To avoid cofusi
     (8,254)         11111110                 3332
     (8,255)         11111111                 3333
 ```
-Base4h numbers are strings with usual base4 pattern and the halfDigit as optional suffix:
+Base4h numbers are strings with usual base4 pattern and the halfDigit as optional suffix. This syntax rule can be expressed by a [regular expression](https://en.wikipedia.org/wiki/Regular_expression):
+
 ```js
 /^([0123]*)([GH])?$/
 ```
@@ -168,13 +183,45 @@ The BigInt Javascript primitive datatype ...
 
 Run *demo* with NodeJS using `node  --experimental-modules demo.mjs | more`.
 
-1. Simplest didactic implementations: test with [demo01.mjs](src/demo01.mjs),
+1. Simplest didactic implementations: test with [demo01.mjs](src/demo01.mjs) (check by its  [assert01.txt](data/assert01.txt)),
 
-   1.1. With a "hidden bit" into the BigInt values: [SizedBigInt-didacticOpt1.mjs](src/SizedBigInt-didacticOpt1.mjs).
+   1.1. With a pair (*size*,*value*) as in the set definition.  [SizedBigInt-didacticOpt1.mjs](src/SizedBigInt-didacticOpt1.mjs).
 
-   1.2. With a pair (*size*,*value*) as in the set definition.  [SizedBigInt-didacticOpt2.mjs](src/SizedBigInt-didacticOpt2.mjs).
+   1.2. With a "hidden bit" into the BigInt values: [SizedBigInt-didacticOpt2.mjs](src/SizedBigInt-didacticOpt2.mjs).
 
-2. Complete implementations: see ...
+2. Complete main implementation: see [**SizedBigInt.mjs**](src/SizedBigInt.mjs). <br/>Can be tested by `demo01.mjs` also with  [`demo02.mjs`](src/demo02.mjs) (check by its  [assert02.txt](data/assert02.txt)).
+
+## Examples
+
+```js
+'use strict';
+import SizedBigInt from './SizedBigInt.mjs';
+
+let x1 = new SizedBigInt('aaf4c', 16); // (val,radix,bits) a base16 initialization
+let x2 = new SizedBigInt('012G');      // default base4h string val
+let y1 = new SizedBigInt(1234567890123456789n); // BigInt val
+let y2 = new SizedBigInt(123,null,55); // Number val, initialized with 55 bits
+let z  = new SizedBigInt();  // z is null, can be changed by z.fromInt(123)
+console.log('toString: ' + [x1,x2,y1,y2,z], "\nDebug object:", x1)
+```
+
+To test and see another  examples of use, see demo01 and demo02 described [above](#Implementation using BigInt).
+
+## Applications
+
+Here some illustrative applications, no one is real, because it is a new issue:
+
+1. [Geohash](https://en.wikipedia.org/wiki/Geohash): it is a geographical encoding standard, that use base32 representation, and  it is impossible to translate to base4 or base16. In fact, the base4 is formally the hierarchical structure of complete 2-bit per latitude-longitude level.
+
+1.1. Geohash local shortcodes: ...
+
+1.2. Geohash half-levels: ...
+
+2. Trucated [cryptographic hashes](https://en.wikipedia.org/wiki/Cryptographic_hash_function): the standard hashes are too long to humans, the most usual is to adopt some truncation level, to compare two hashes or to show a list of few hashes. The truncation can be used also as alternative stantandard, discrding original hash.
+
+2.1. [SHA1](https://en.wikipedia.org/wiki/SHA-1) example. The SHA1 standard use 160 bits (20 bytes). After truncate it to 30 bits, how to  represent it in hexadecimals  preserving the same prefix? With base16h is possible.<br/>   SHA1("hello")=`aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d`.  Trucanding 5 digits, `aaf4c`, so 5*4=20 bits.  Truncating to any number of bits preserving prefix: to 20 bits `xx`, to 21 bits `xxx`, to 36 bits.
+
+2.1. CRC32 example. ...
 
 ------
 

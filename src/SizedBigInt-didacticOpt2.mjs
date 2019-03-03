@@ -1,36 +1,37 @@
 /**
- * SizedBigInt class.
+ * SizedBigInt class. This Opt2 implements internal hidden-bit value representation.
+ * Didactic/simplified  implementaion. Only illustrative, please avoid to use.
+ * Implements only base4h and hierarchical binary strings.
+ *
  * Sized BigInt's are arbitrary-precision integers with controled number of bits.
  * Each instance is a pair (bits,val) with the BigInt value and the number of bits.
  * Input and output accepts many optional representations.
  * String output use the leading zeros to diffrenciate numbers (00 is not 0).
+ * To review see also bitwise operations at https://github.com/GoogleChromeLabs/jsbi#why
  *
- * Version 0.2.1  https://github.com/ppKrauss/SizedBigInt
- * License CC0    https://creativecommons.org/publicdomain/zero/1.0/
+ * License CC0   https://creativecommons.org/publicdomain/zero/1.0
+ * Original (C) 2019 by ppkrauss, source at https://github.com/ppKrauss/SizedBigInt
  */
- 
+
 export default class SizedBigInt { // (hidden bit version)
 
   constructor(val,radix,bits,maxBits) {
     this.kx = { // base4h alphabet translations to and from binary string:
       alpha_tr:   { "G":"0", "H":"1", "0":"00", "1":"01", "2":"10", "3":"11" }
-      ,alpha_itr: { "0":"G", "1":"H", "00":"I","01":"J","10":"K","11":"L"}
+      ,alpha_itr: { "0":"G", "1":"H", "00":"0", "01":"1", "10":"2", "11":"3" }
     };
-    let t = typeof val
+
+    let t = typeof val;
     if (t=='object') {
-       if (val instanceof SizedBigInt) {
-         this.val = val.val // make a clone
-         return this; // or exit with void return?
-       }
        if (val instanceof Array) [val,radix,bits,maxBits]=val;
        else ({val,radix,bits,maxBits} = val);
        t = typeof val
     }
     // set to default values when 0, null or undefined:
-    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=512
+    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=64
 
-    SizedBigInt.compare_invert=null;
     this.maxBits = maxBits
+    SizedBigInt.compare_invert=null;
     if (t=='string')
       this.fromString(val,radix)
     else // bigint, number or null
@@ -45,19 +46,21 @@ export default class SizedBigInt { // (hidden bit version)
   // Input methods:
 
   fromString(val,radix=4) {
-    return (radix==4)
+    return (radix==4||radix=='4h')
       ? this.fromBase4(val)
       : this.fromBinaryString(val);
   }
 
   fromInt(val,bits=0) {
     let t = typeof val
-    if (t == 'bigint' || t=='number') {
-      if (t=='number')  val = BigInt(String(val));
-      let strbin = val.toString(2)
+    let isNum = (t=='number')
+    if (t == 'bigint' || isNum) {
+      if (isNum)  val = BigInt.asUintN( this.maxBits, String(val) );
+      let strbin  = val.toString(2);
       let l = strbin.length
       bits = bits? bits: l
-      if (l>bits)  throw new Error("input bits invalid");
+      if (l>bits)  throw new Error("invalid input value, bigger than input bit-length");
+      if (bits>this.maxBits) throw new Error(`bit-length exceeded the limit ${this.maxBits}`);
       return this.fromBinaryString(strbin,bits)
     } else {
       this.val  = null
@@ -88,16 +91,22 @@ export default class SizedBigInt { // (hidden bit version)
   // // //
   // Getters and output methods:
 
-  valueOf() { return this.val; } // with first bit '1'
+  valueOf() { return this.val; } // GAMBI, with first bit '1'
+
   get value() { return this.toString(4) }
 
-  toString(radix) {
+  toString(radix) { // melhor usar base4?
     if (radix==2)
       return (this.val===null)
         ? ''
         : this.val.toString(2).slice(1); // remove first 1!
-    else if (radix!=4) throw new Error("invalid radix");
     let b = this.toString(2) // recurrence
+    if (radix!=4 && radix!='4h') {  // GAMBI, revisar
+      if (this.val===null) return '[0,null]';
+      let bits = b.length
+      let v = BigInt('0b'+b)
+      return `[${bits},${v}]` // (not coercing to array)
+    }
     let r = ''
     for (let i=0; i<b.length; i=i+2)
       r += this.kx.alpha_itr[ b.charAt(i)+b.charAt(i+1) ];

@@ -1,0 +1,9 @@
+Latex or math.stackexchange.com text:
+
+$$L_{lmax}=\{1, 2, \ldots, lmax\}$$
+
+$$X_{lmax} = \{\forall x \in (l,n) ~ | ~ l \in L_{lmax} ~\land ~ n \in \mathbb{N} \}$$
+
+$$x=y ~ \iff ~ l_x=l_y \land n_x=n_y$$
+
+$$x>y ~ \iff ~ l_x > l_y ~ \lor ~ (l_x=l_y \land n_x > n_y)$$
