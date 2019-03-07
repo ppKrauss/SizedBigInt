@@ -1,46 +1,55 @@
 // // // // // // //
 // Demonstating basic operations, valid also for didactic options.
-// USE ON TERMINAL:
+// USE ON TERMINAL: opt1, opt2 or main,
 //  node  --experimental-modules demo01.mjs opt1 > chk_assert01.txt
 //  diff ../data/assert01.txt chk_assert01.txt
 //
 
 'use strict';
-import SizedBigInt from './SizedBigInt-didacticOpt1.mjs';  // change to Opt2
-/* switch (process.argv[2]) { // see https://stackoverflow.com/q/54968352/287948
-  case 'opt2':
-    import SizedBigInt from './SizedBigInt-didacticOpt2.mjs'; break;
-  case 'main':
-    import SizedBigInt from './SizedBigInt.mjs'; break;
-  default:
-    import SizedBigInt from './SizedBigInt-didacticOpt1.mjs';
-}
-*/
-let sbiArray = [
-  new SizedBigInt(1n),  new SizedBigInt(),  new SizedBigInt(0n),
-  new SizedBigInt(881n), new SizedBigInt("1001",4),
-  new SizedBigInt(900997199254740991n), // less than 64 bits
-  new SizedBigInt(90099719925474099999991n,null,null,512)  // more than 64 bits
-];
-console.log( sbiArray.toString() )
 
-if (SizedBigInt.createMany) { // only SizedBigInt.mjs
-  let testMany = SizedBigInt.createMany([
-    1n, null,  0n, 881n, "1001", 900997199254740991n, [90099719925474099999991n,null,null,512]
-  ]);
-  console.log( testMany.toString() == sbiArray.toString() )
-} else
-  console.log( true )
-
-
-// // // //
-console.log("\n\nbits\tBinary\tBase4h")
-const b4h = new SizedBigInt(0)
+const fileOpts = {
+   opt1: './SizedBigInt-didacticOpt1.mjs'
+  ,opt2: './SizedBigInt-didacticOpt2.mjs'
+  ,main: './SizedBigInt.mjs'
+};
+var b4h;
 var lst = []
-showBase4hValues(8) // change to any number of bits... take care with output overflow.
 
+import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}) => {
 
-///////
+  let sbiArray = [
+    new SizedBigInt(1n),  new SizedBigInt(),  new SizedBigInt(0n),
+    new SizedBigInt(881n), new SizedBigInt("1001",4),
+    new SizedBigInt(900997199254740991n), // less than 64 bits
+    new SizedBigInt(90099719925474099999991n,null,null,512)  // more than 64 bits
+  ];
+  console.log( sbiArray.toString() )
+
+  if (SizedBigInt.createMany) { // only SizedBigInt.mjs
+    let testMany = SizedBigInt.createMany([
+      1n, null,  0n, 881n, "1001", 900997199254740991n, [90099719925474099999991n,null,null,512]
+    ]);
+    console.log( testMany.toString() == sbiArray.toString() )
+  } else
+    console.log( true )
+
+  // MAIN:
+  console.log("\n\nbits\tBinary\tBase4h")
+  b4h = new SizedBigInt(0)
+  showBase4hValues(8) // change to any number of bits... take care with output overflow.
+
+  // LISTS:
+  console.log("\t--- DEBUG1 SORT lexicographic:")
+  SizedBigInt.sort(lst,true) // false is default
+  for(let i of lst) console.log(i.toString('4h'))
+  console.log("\t--- DEBUG2 SORT numeric revert:")
+  SizedBigInt.sort(lst,false,true)
+  for(let i of lst) console.log(i.toString('4h'))
+
+});
+
+//
+// LIB:
 
 function showBase4hValues(maxBits, cur = ''){
   // see also https://stackoverflow.com/a/54506574/287948
@@ -54,11 +63,3 @@ function showBase4hValues(maxBits, cur = ''){
     showBase4hValues(maxBits, next)
   } // \for
 } // \func
-
-console.log("\t--- DEBUG1 SORT lexicographic:")
-SizedBigInt.sort(lst,true) // false is default
-for(let i of lst) console.log(i.toString('4h'))
-
-console.log("\t--- DEBUG2 SORT numeric revert:")
-SizedBigInt.sort(lst,false,true)
-for(let i of lst) console.log(i.toString('4h'))

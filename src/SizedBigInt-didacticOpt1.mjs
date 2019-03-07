@@ -19,8 +19,11 @@ export default class SizedBigInt {
     };
 
     let t = typeof val;
-    if (t=='object') {
-       if (val instanceof Array) [val,radix,bits,maxBits]=val;
+    if (val && t=='object') { // not-null object
+       if (val instanceof SizedBigInt)
+        [val,radix,bits,maxBits]=[val.val,null,val.bits,null]; // clone()
+       else if (val instanceof Array)
+        [val,radix,bits,maxBits]=val;
        else ({val,radix,bits,maxBits} = val);
        t = typeof val
     }

@@ -8,31 +8,13 @@ Sized BigInt's are arbitrary-precision integers ([BigInt](https://developer.mozi
 To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`](http://ppKrauss.github.com/SizedBigInt).
 -->
 
-## Terminology
-
-* Base: the web standards, as  [RFC&#160;4648](https://tools.ietf.org/html/rfc4648), use the term "base", but Javascript (ECMA-262) adopted the term "radix" in [`parseInt(string, radix)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt). The preferred term is *base*.
-
-* Base alphabet: is the "encoding alphabet", a set of UTF-8 symbols used as digit values of a specific base.
-
-* Base label: each pair (base,alphabet) need a short label. In the [*SizedBigInt class*](src/SizedBigInt.mjs) some labels was defined: `base2`, `base4`, `base4h`, `base8`, `base16`, `base16h`, `base32`, `base32ghs`, `base32hex`, `base32pt`, `base32rfc`, `base64`, `base64url`,  `base64rfc`.
-
-* Binary and base2: sometimes  is necessary to remember that a BigInt is an internal *binary* representation. The preferred term for string-representation is *base2*.
-
-* Default alphabet: is the alphabet adopted as standard for a specific base, associated with the label "baseX", for example "base4" is a synonymous for "base4h" in the SizedBigInt conventions.
-
-* Padding: SizedBigInt's are numbers where *padding zeros* make difference (0 is not equal to 00). In some other conventions for base-encoded data, the padding is maked by a character like "=", so, it must be converted to zero.
-
-* Set, element, number, natural number and integer are terms of the [Set Theory](https://en.wikipedia.org/wiki/Set_theory), the formal mathematical foundation used here.  In implementation context the  Javascript semantic for integer, class, number, etc. is preferred.
-
-* Size and length: The term "size" was used in the title of this project, but the usual term for "size of the string" is *length* and, for binary numbers,  [bit-length](https://en.wikipedia.org/wiki/Bit-length),  the preferred term.
-
 ## Basic examples
 
 The following examples  can be mathematically described as a **finite sets** of numeric representations.  Limiting examples in 8 bits:
 
-* Samples of binary representations:  <i>X</i><sub>1</sub>&nbsp;=&nbsp;{`0`, `1`} &nbsp; <i>X</i><sub>2</sub>&nbsp;=&nbsp;{`0`, `00`, `01`, `1`, `10`, `11`} &nbsp; <i>X</i><sub>3</sub>&nbsp;=&nbsp;... <br/><i>X</i><sub>8</sub>&nbsp;=&nbsp;{`0`, `00`, `000`, `000`,..., `00000000`, `00000001`, ..., `11111111`}.
+* Samples of base2 representations:  <i>X</i><sub>1</sub>&nbsp;=&nbsp;{`0`, `1`} &nbsp; <i>X</i><sub>2</sub>&nbsp;=&nbsp;{`0`, `00`, `01`, `1`, `10`, `11`} &nbsp; <i>X</i><sub>3</sub>&nbsp;=&nbsp;... <br/><i>X</i><sub>8</sub>&nbsp;=&nbsp;{`0`, `00`, `000`, `000`,..., `00000000`, `00000001`, ..., `11111111`}.
 
-* The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (base4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
+* The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (base4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <br/><i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
 
 Ordering the illustred elements. The order in ordinarry mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **numeric order**, using the bit-length as first criterium.
 
@@ -65,7 +47,7 @@ Here a set of elements illustrated with different representations, listed by lex
 
 Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *set* is the mathematical reference-concept for implementations.
 
-As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit-length *l*  and numeric value *n*, a Natural number.  Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>lmax</sub></b> is a SizedBigInt set constrained by *L*:
+As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit&#8209;length&nbsp;*l*  and numeric value&nbsp;*n*, a Natural number.  Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>lmax</sub></b> is a SizedBigInt set constrained by *L*:
 <!--![](assets/equations02.344px.png)-->
 
 ![](assets/equations02.png)
@@ -129,9 +111,10 @@ We can use base16 (hexadecimal representation) for any integer, but when control
 
 So, how to represent sized integers as `0`, `1`, `00`, `01`, `10`, ...  ?
 
-The solution is to extend a hexadecimal representation, in a similar way to the previous one used for [base4h](#Base4h): the last digit as a fake-digit that can represent all these incompatible values  &mdash; so using the halphDigit values `G` and `H` for 1-bit values, and including more values for 2 bits (4 values) and 3 bits (8 values). The total is 2+4+8=14 values, they can be represented by the letters `G` to `T`. The name of this new representation is **Base16h**, because it is the usual Base16 "plus an optional halfDigit", by **h** shortening *half*.
+The solution is to extend a hexadecimal representation, in a similar way to the previous one used for [base4h](#Base4h): the last digit as a fake-digit that can represent all these incompatible values  &mdash; so using the halphDigit values `G` and `H` for 1-bit values, and including more values for 2 bits (4 values) and 3 bits (8 values). The total is 2+4+8=14 values, they can be represented by the letters `G` to `T`.
 
-Base16h numbers are strings with usual base16 pattern and an optional final exotic digit:
+The name of this new representation is **Base16h**, because it is the ordinary Base16 "plus an optional halfDigit", by **h** shortening *half*.  Its string pattern is:
+
 ```js
 /^([0-9a-f]*)([G-T])?$/
 ```
@@ -213,15 +196,31 @@ Here some illustrative applications, no one is real, because it is a new issue:
 
 1. [Geohash](https://en.wikipedia.org/wiki/Geohash): it is a geographical encoding standard, that use base32 representation, and  it is impossible to translate to base4 or base16. In fact, the base4 is formally the hierarchical structure of complete 2-bit per latitude-longitude level.
 
-1.1. Geohash local shortcodes: ...
+  1.1. Geohash local shortcodes: ...
 
-1.2. Geohash half-levels: ...
+  1.2. Geohash half-levels: ...
 
 2. Trucated [cryptographic hashes](https://en.wikipedia.org/wiki/Cryptographic_hash_function): the standard hashes are too long to humans, the most usual is to adopt some truncation level, to compare two hashes or to show a list of few hashes. The truncation can be used also as alternative stantandard, discrding original hash.
 
-2.1. [SHA1](https://en.wikipedia.org/wiki/SHA-1) example. The SHA1 standard use 160 bits (20 bytes). After truncate it to 30 bits, how to  represent it in hexadecimals  preserving the same prefix? With base16h is possible.<br/>   SHA1("hello")=`aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d`.  Trucanding 5 digits, `aaf4c`, so 5*4=20 bits.  Truncating to any number of bits preserving prefix: to 20 bits `xx`, to 21 bits `xxx`, to 36 bits.
+  2.1. [SHA1](https://en.wikipedia.org/wiki/SHA-1) example. The SHA1 standard use 160 bits (20 bytes). After truncate it to 30 bits, how to  represent it in hexadecimals  preserving the same prefix? With base16h is possible.<br/>   SHA1("hello")=`aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d`.  Trucanding 3 digits, `aaf`, so 3*4=12 bits.  Truncating to any number of bits **preserving prefix**: to 13 bits `aafG`, to 21 bits `aaf4cG`, to 35 bits `aaf4c61dS`, to 38 bits `aaf4c61ddL`.<br/>PS: standard hexadecimal conversion for same numbers will be `aaf`, `155e`, `155e98`, `557a630ee`  and `2abd318777`.
 
-2.1. CRC32 example. ...
+## Terminology
+
+* Base: the web standards, as  [RFC&#160;4648](https://tools.ietf.org/html/rfc4648), use the term "base", but Javascript (ECMA-262) adopted the term "radix" in [`parseInt(string, radix)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt). The preferred term is *base*.
+
+* Base alphabet: is the "encoding alphabet", a set of UTF-8 symbols used as digit values of a specific base.
+
+* Base label: each pair (base,alphabet) need a short label. In the [*SizedBigInt class*](src/SizedBigInt.mjs) some labels was defined: `base2`, `base4`, `base4h`, `base8`, `base16`, `base16h`, `base32`, `base32ghs`, `base32hex`, `base32pt`, `base32rfc`, `base64`, `base64url`,  `base64rfc`.
+
+* Binary and base2: sometimes  is necessary to remember that a BigInt is an internal *binary* representation. The preferred term for string-representation is *base2*.
+
+* Default alphabet: is the alphabet adopted as standard for a specific base, associated with the label "baseX", for example "base4" is a synonymous for "base4h" in the SizedBigInt conventions.
+
+* Padding: SizedBigInt's are numbers where *padding zeros* make difference (0 is not equal to 00). In some other conventions for base-encoded data, the padding is maked by a character like "=", so, it must be converted to zero.
+
+* Set, element, number, natural number and integer are terms of the [Set Theory](https://en.wikipedia.org/wiki/Set_theory), the formal mathematical foundation used here.  In implementation context the  Javascript semantic for integer, class, number, etc. is preferred.
+
+* Size and length: The term "size" was used in the title of this project, but the usual term for "size of the string" is *length* and, for binary numbers,  [bit-length](https://en.wikipedia.org/wiki/Bit-length),  the preferred term.
 
 ------
 

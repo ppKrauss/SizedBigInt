@@ -8,22 +8,81 @@
 
 export default class SizedBigInt {
 
-  constructor(val,radix,bits,maxBits) {
+  constructor(val,radix,bits,maxBits=null) {
     SizedBigInt.kxRefresh_defaults(); // global cache once.
-
     let t = typeof val;
     if (val && t=='object') { // not-null object
-       if (val instanceof Array) [val,radix,bits,maxBits]=val;
+       if (val instanceof SizedBigInt)
+        [val,radix,bits,maxBits]=[val.val,null,val.bits,null]; // clone()
+       else if (val instanceof Array)
+        [val,radix,bits,maxBits]=val;
        else ({val,radix,bits,maxBits} = val);
        t = typeof val
     }
     // set to default values when 0, null or undefined:
-    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=64
     if (t=='string') {
+      if (!radix) radix = 4;
       if (bits) throw new Error("Invalid input bits for string");
-      this.fromString(val,radix,maxBits)
+      this.fromString(val, radix, maxBits)
     } else // bigint, number or null
-      this.fromInt(val,bits,maxBits)
+      this.fromInt(val, bits, maxBits)
+  }
+
+  /**
+   * Internal class-level cache-builder for Base4h and Base16ph complete translations.
+   * and generates all other kx_baseLabel global defaults. Singleton Design Pattern.
+   */
+  static kxRefresh_defaults() {
+   // each standard alphabet as key in the translator.
+   if (!SizedBigInt.kx_tr) {
+     SizedBigInt.kx_tr={};
+     SizedBigInt.kx_baseLabel = {
+       "2":   { base:2, alphabet:"01", isDefault:true, ref:"ECMA-262" }
+       ,"4h": {
+         base:4, isDefault:true,
+         useHalfDigit:true,
+         alphabet:"0123GH", case:"upper",
+         regex:'^([0123]*)([GH])?$',
+         ref:"SizedBigInt"
+         }
+       ,"16h": {
+         base:16, isDefault:true,
+         useHalfDigit:true,
+         alphabet:"0123456789abcdefGHIJKLMNOPQRST",
+         regex:'^([0-9a-f]*)([G-T])?$',
+         ref:"SizedBigInt"
+       }
+       ,"4js":   { alphabet:"0123", ref:"ECMA-262" }
+       ,"8js":   { alphabet:"01234567", isDefault:true, ref:"ECMA-262" }
+       ,"16js":  { alphabet:"0123456789abcdef", ref:"ECMA-262" } // RFC 4648 sec 8 is upper
+       ,"32hex": { alphabet:"0123456789abcdefghijklmnopqrstuv", isDefault:true, ref:"RFC 4648 sec. 7" }
+       ,"32pt":  { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"Portuguese encodings" }
+       ,"32rfc": { alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", ref:"RFC 4648 sec. 6" }
+       ,"32ghs": { alphabet:"0123456789bcdefghjkmnpqrstuvwxyz", ref:"Geohash, classical of 2008" }
+       ,"64url": {
+         alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+         isDefault:true, ref:"RFC 4648 sec. 5"
+       }
+     };
+     SizedBigInt.kx_baseLabel_setRules();
+
+     SizedBigInt.kx_tr['4h-to-2'] = {
+       "G":"0","H":"1", // HalfDigit to binary
+       "0":"00", "1":"01", "2":"10", "3":"11", // standard base4 to binary
+     };
+     SizedBigInt.kx_tr['2-to-4h']  = SizedBigInt.objSwap(SizedBigInt.kx_tr['4h-to-2']);
+     SizedBigInt.kx_trConfig('16js'); // '16js-to-2' and '2-to-16js'
+     SizedBigInt.kx_tr['16h-to-2'] = Object.assign(
+         SizedBigInt.kx_tr['16js-to-2'],
+         {
+           "G":"0","H":"1", // HalfDigit to binary
+           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-HalfDigits to binary
+           "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-HalfDigits
+         }
+     );
+     SizedBigInt.kx_tr['2-to-16h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['16h-to-2']);
+     // any other kx_tr[] must to use the fabric kx_trConfig().
+   } // \if
   }
 
   clone() {
@@ -32,6 +91,7 @@ export default class SizedBigInt {
 
   static createMany(a) { // mulple constructor
     let t = typeof a;
+    // if (a instanceof Set) ... if (WeakMap) ...
     if (t=='array' || a instanceof Array)
       return a.map( x => new SizedBigInt(x) );
     else if (t=='object')
@@ -41,10 +101,43 @@ export default class SizedBigInt {
     else throw new Error("Invalid input type, use Array or Object");
   }
 
+  /**
+   * Create two new numbers, prefix and suffix about bits.
+   * No changes in the current value.
+   * @param bits integer, number of bits in the prefix.
+   * @return array, two new SizedBigInts. Null when invalid bits.
+   */
+   createSplitAt(bits) {
+    if (!bits || bits<0 || bits>this.bits) return null;
+    let strbin = this.toString(2)
+    return [
+      new SizedBigInt( strbin.slice(0,bits), 2 ),
+      new SizedBigInt( strbin.slice(bits), 2 )
+    ]; // must be tested!
+  }
+
   // // //
   // Input methods:
 
-  fromString(strval,radix=4,maxBits=64) {
+  fromNull() { this.val=null; this.bits=0; return this; }
+
+  fromBinaryString(strval, maxBits=null) {
+    if (!strval) return this.fromNull();
+    this.bits = strval.length
+    if (maxBits && this.bits>maxBits)
+      throw new Error(`bit-length ${this.bits} exceeded the limit ${maxBits}`);
+    this.val = BigInt("0b"+strval)
+    return this
+  }
+
+  /**
+   * Input from string.
+   * @param strval string with valid representation for radix.
+   * @param radix the representation adopted in strval, a label of SizedBigInt.kx_baseLabel.
+   * @param maxBits null or maximal number of bits.
+   * @return new or redefined SizedBigInt.
+   */
+  fromString(strval, radix=4, maxBits=null) {
     if (typeof strval!='string') throw new Error("Invalid input type, must be String");
     let r = SizedBigInt.baseLabel(radix,false)
     if (!strval) return this.fromNull()
@@ -59,18 +152,19 @@ export default class SizedBigInt {
     return this.fromBinaryString(strbin,maxBits)
   }
 
-  fromNull() {
-    this.val  = null
-    this.bits = 0;
-    return this;
-  }
-
-  fromInt(val,bits=0,maxBits=64) {
+  /**
+   * Input from BigInt or integer part of a Number.
+   * @param val Number or BigInt.
+   * @param bits optional, the bit-length of val, to padding zeros.
+   * @param maxBits null or maximal number of bits (trunc when val is Number).
+   * @return new or redefined SizedBigInt.
+   */
+  fromInt(val, bits=0, maxBits=null) {
     let t = typeof val
-    if (t == 'bigint' || t=='number') {
-      let isNum = (t=='number')
-      if (isNum)  this.val = maxBits
-        ? BigInt.asUintN( maxBits, String(val) )
+    let isNum = (t=='number')
+    if (t == 'bigint' || isNum) {
+      if (isNum)  this.val =
+        maxBits? BigInt.asUintN( maxBits, String(val) )
         : BigInt( String(val) );
       else this.val = val; // is a clone?
       let l = this.val.toString(2).length  // ? check https://stackoverflow.com/q/54758130/287948
@@ -80,20 +174,11 @@ export default class SizedBigInt {
       if (maxBits && this.bits>maxBits)
         throw new Error(`bit-length ${this.bits} exceeded the limit ${maxBits}`);
       return this
-    } else
+    } else // null, undefined, string, etc.
       return this.fromNull()
   }
 
-  fromBinaryString(strval,maxBits=64) {
-    if (!strval) return this.fromNull()
-    this.bits = strval.length
-    if (maxBits && this.bits>maxBits)
-      throw new Error(`bit-length ${this.bits} exceeded the limit ${maxBits}`);
-    this.val = BigInt("0b"+strval)
-    return this
-  }
-
-  fromHexString(strval) {  // not in use, for performance optimizations
+  _fromHexString(strval) {  // not in use, for performance optimizations
     if (!strval) return this.fromNull()
     this.bits = strval.length*4
     this.val = BigInt("0x"+strval)
@@ -105,6 +190,11 @@ export default class SizedBigInt {
 
   get value() { return [this.bits,this.val] }
 
+
+  /**
+   * Overrides the default toString() method and implements radix convertions.
+   * @param radix optional, the base-label (see keys of SizedBigInt.kx_baseLabel)
+   */
   toString(radix) {
     if (radix===undefined)
       return `[${this.bits},${this.val}]`; // Overrides Javascript toString()
@@ -135,63 +225,6 @@ export default class SizedBigInt {
     return Object.entries(obj).reduce(
       (obj, [key,value])  =>  ({ ...obj, [value]: key }),  {}
     )
-  }
-
- /**
-  * Internal class-level cache-builder for Base4h and Base16ph alphabet translations.
-  * Generates the default global objects.  Singleton Design Pattern.
-  */
-  static kxRefresh_defaults() {
-    // each standard alphabet as key in the translator.
-    if (!SizedBigInt.kx_tr) {
-      SizedBigInt.kx_tr={};
-      SizedBigInt.kx_baseLabel = {
-        "2":   { base:2, alphabet:"01", isDefault:true, ref:"ECMA-262" }
-        ,"4h": {
-          base:4, isDefault:true,
-          useHalfDigit:true,
-          alphabet:"0123GH", case:"upper",
-          regex:'^([0123]*)([GH])?$',
-          ref:"SizedBigInt"
-          }
-        ,"16h": {
-          base:16, isDefault:true,
-          useHalfDigit:true,
-          alphabet:"0123456789abcdefGHIJKLMNOPQRST",
-          regex:'^([0-9a-f]*)([G-T])?$',
-          ref:"SizedBigInt"
-        }
-        ,"4js":   { alphabet:"0123", ref:"ECMA-262" }
-        ,"8js":   { alphabet:"01234567", isDefault:true, ref:"ECMA-262" }
-        ,"16js":  { alphabet:"0123456789abcdef", ref:"ECMA-262" } // RFC 4648 sec 8 is upper
-        ,"32hex": { alphabet:"0123456789abcdefghijklmnopqrstuv", isDefault:true, ref:"RFC 4648 sec. 7" }
-        ,"32pt":  { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"Portuguese encodings" }
-        ,"32rfc": { alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", ref:"RFC 4648 sec. 6" }
-        ,"32ghs": { alphabet:"0123456789bcdefghjkmnpqrstuvwxyz", ref:"Geohash, classical of 2008" }
-        ,"64url": {
-          alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
-          isDefault:true, ref:"RFC 4648 sec. 5"
-        }
-      };
-      SizedBigInt.kx_baseLabel_setRules();
-
-      SizedBigInt.kx_tr['4h-to-2'] = {
-        "G":"0","H":"1", // HalfDigit to binary
-        "0":"00", "1":"01", "2":"10", "3":"11", // standard base4 to binary
-      };
-      SizedBigInt.kx_tr['2-to-4h']  = SizedBigInt.objSwap(SizedBigInt.kx_tr['4h-to-2']);
-      SizedBigInt.kx_trConfig('16js'); // '16js-to-2' and '2-to-16js'
-      SizedBigInt.kx_tr['16h-to-2'] = Object.assign(
-          SizedBigInt.kx_tr['16js-to-2'],
-          {
-            "G":"0","H":"1", // HalfDigit to binary
-            "I":"00","J":"01","K":"10","L":"11",  // 2-bit-HalfDigits to binary
-            "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-HalfDigits
-          }
-      );
-      SizedBigInt.kx_tr['2-to-16h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['16h-to-2']);
-      // any other kx_tr[] must to use the fabric kx_trConfig().
-    } // \if
   }
 
   /**
@@ -294,27 +327,16 @@ export default class SizedBigInt {
     SizedBigInt.compare_lexicographic = null // clean
   }
 
-  /**
-   * Truncate returnig prefix and suffix.
-   * @param bits integer, number of bits in the prefix.
-   * @return array, two new SizedBigInts.
-   */
-   splitAt(bits) {
-    if (!bits||bits<0||bits>this.bits) return null;
-    let strbin = this.toString(2)
-    return [
-      new SizedBigInt( strbin.slice(0,bits), 2 ),
-      new SizedBigInt( strbin.slice(bits), 2 )
-    ]
-  }
 
   /**
+   * Changes current val to a truncate prefix (most significative part).
+   * Trucated is same as createSplitAt(bits)[0];
    * @param bits, number of bits of the result.
-   * @return SizedBigInt, trucated clone. Same as this.splitAt(bits)[0];
+   * @return this.
    */
-  trunc(bits) {
-    if (!bits||bits<0||bits>this.bits) return null;
-    return new SizedBigInt( this.toString(2).slice(0,bits), 2 )
+  truncAt(bits) {
+    if (!bits || bits<0 || bits>this.bits) return this;
+    return this.fromBinaryString( this.toString(2).slice(0,bits) );
   }
 
 
