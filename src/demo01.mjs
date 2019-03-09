@@ -25,13 +25,15 @@ import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}
   ];
   console.log( sbiArray.toString() )
 
-  if (SizedBigInt.createMany) { // only SizedBigInt.mjs
+  if (SizedBigInt.createMany) { // only main option
     let testMany = SizedBigInt.createMany([
       1n, null,  0n, 881n, "1001", 900997199254740991n, [90099719925474099999991n,null,null,512]
     ]);
-    console.log( testMany.toString() == sbiArray.toString() )
+    let trc0 = new SizedBigInt(255)
+    let trc  = trc0.clone(4)
+    console.log( testMany.toString() == sbiArray.toString(), Number(trc.val)==15 )
   } else
-    console.log( true )
+    console.log( true, true )
 
   // MAIN:
   console.log("\n\nbits\tBinary\tBase4h")

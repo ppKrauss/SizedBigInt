@@ -28,6 +28,12 @@ export default class SizedBigInt {
       this.fromInt(val, bits, maxBits)
   }
 
+  /**
+   * Mulple constructor, initialize each instance by array or object.
+   * @param a Array or object,
+   *  Array of values or Array of valid inicializers;
+   *  Object of key-value or object of valid inicializers.
+   */
   static createMany(a) { // mulple constructor
     let t = typeof a;
     // if (a instanceof Set) ... if (WeakMap) ...
@@ -43,8 +49,17 @@ export default class SizedBigInt {
   // // //
   // Clone utilities:
 
-  clone() {
-    return new SizedBigInt(this.val, null, this.bits)
+  /**
+   * Clone the instance, optional truncCloning().
+   * @param bits null to ignore or integer greater tham zero to trunc by first bits.
+   */
+  clone(bits=null) {
+    if (bits) {
+      let tmp = new SizedBigInt(this.val, null, this.bits)
+      tmp.truncCloning(bits);
+      return tmp;
+    } else
+      return new SizedBigInt(this.val, null, this.bits)
   }
 
   /**
@@ -63,7 +78,7 @@ export default class SizedBigInt {
   }
 
   /**
-   * Clone and truncate by most significative bits. Same as splitCloning(bits)[0].
+   * Clone? and truncate by most significative bits. Same as splitCloning(bits)[0].
    * @param bits, number of bits of the result.
    * @return null on error or SizedBigInt, trucated clone.
    */
@@ -99,6 +114,7 @@ export default class SizedBigInt {
     if (!strval) return this.fromNull()
     if (r.base==2)
       return this.fromBinaryString(strval,maxBits);
+    // else if (r.label='16js') _fromHexString(), to optimize.
     let trLabel = r.label+'-to-2'
     if (!SizedBigInt.kx_tr[trLabel]) SizedBigInt.kx_trConfig(r.label);
     let tr = SizedBigInt.kx_tr[trLabel]
@@ -120,7 +136,7 @@ export default class SizedBigInt {
     let isNum = (t=='number')
     if (t == 'bigint' || isNum) {
       if (isNum)  this.val =
-        maxBits? BigInt.asUintN( maxBits, String(val) )
+        maxBits? BigInt.asUintN( maxBits, String(Math.abs(val)) )
         : BigInt( String(val) );
       else this.val = val; // is a clone?
       let l = this.val.toString(2).length  // ? check https://stackoverflow.com/q/54758130/287948
@@ -134,10 +150,11 @@ export default class SizedBigInt {
       return this.fromNull()
   }
 
-  _fromHexString(strval) {  // not in use, for performance optimizations
+  _fromHexString(strval, maxBits=null) {
+    // not in use, for check performance optimizations
     if (!strval) return this.fromNull()
     this.bits = strval.length*4
-    this.val = BigInt("0x"+strval)
+    this.val = BigInt("0x"+strval) // works with asUintN(maxBits)?
     return this
   }
 
@@ -145,7 +162,6 @@ export default class SizedBigInt {
   // Getters and output methods:
 
   get value() { return [this.bits,this.val] }
-
 
   /**
    * Overrides the default toString() method and implements radix convertions.
