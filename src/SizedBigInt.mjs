@@ -9,7 +9,7 @@
 export default class SizedBigInt {
 
   constructor(val,radix,bits,maxBits=null) {
-    SizedBigInt.kxRefresh_defaults(); // global cache once.
+    SizedBigInt.kx_RefreshDefaults(); // global cache once.
     let t = typeof val;
     if (val && t=='object') { // not-null object
        if (val instanceof SizedBigInt)
@@ -48,18 +48,28 @@ export default class SizedBigInt {
   }
 
   /**
-   * Create two new numbers, prefix and suffix about bits.
-   * No changes in the current value.
+   * Create array of prefix and suffix cloned parts.
+   * The prefix is the same as truncCloning(bits).
    * @param bits integer, number of bits in the prefix.
    * @return array, two new SizedBigInts. Null when invalid bits.
    */
-   createSplitAt(bits) {
+   splitCloning(bits) {
     if (!bits || bits<0 || bits>this.bits) return null;
     let strbin = this.toString(2)
     return [
       new SizedBigInt( strbin.slice(0,bits), 2 ),
       new SizedBigInt( strbin.slice(bits), 2 )
     ]; // must be tested!
+  }
+
+  /**
+   * Clone and truncate by most significative bits. Same as splitCloning(bits)[0].
+   * @param bits, number of bits of the result.
+   * @return null on error or SizedBigInt, trucated clone.
+   */
+  truncCloning(bits) {
+    if (!bits || bits<0 || bits>this.bits) return this;
+    return this.fromBinaryString( this.toString(2).slice(0,bits) );
   }
 
   // // //
@@ -102,7 +112,7 @@ export default class SizedBigInt {
    * Input from BigInt or integer part of a Number.
    * @param val Number or BigInt.
    * @param bits optional, the bit-length of val, to padding zeros.
-   * @param maxBits null or maximal number of bits (trunc when val is Number).
+   * @param maxBits null or maximal number of bits, truncating.
    * @return new or redefined SizedBigInt.
    */
   fromInt(val, bits=0, maxBits=null) {
@@ -203,7 +213,6 @@ export default class SizedBigInt {
     SizedBigInt.compare_lexicographic = null // clean
   }
 
-
   /**
    * Swap-object utility.
    * @return object with swapped key-values.
@@ -213,7 +222,6 @@ export default class SizedBigInt {
       (obj, [key,value])  =>  ({ ...obj, [value]: key }),  {}
     )
   }
-
 
   /**
    * Check and normalize the base label. Access the global kx_baseLabel.
@@ -234,18 +242,6 @@ export default class SizedBigInt {
   }
 
 
-  /**
-   * Changes current val to a truncate prefix (most significative part).
-   * Trucated is same as createSplitAt(bits)[0];
-   * @param bits, number of bits of the result.
-   * @return this.
-   */
-  truncAt(bits) {
-    if (!bits || bits<0 || bits>this.bits) return this;
-    return this.fromBinaryString( this.toString(2).slice(0,bits) );
-  }
-
-
   // // //
   // Iternal use, cache-manager methods:
 
@@ -253,7 +249,7 @@ export default class SizedBigInt {
    * Internal class-level cache-builder for Base4h and Base16ph complete translations.
    * and generates all other kx_baseLabel global defaults. Singleton Design Pattern.
    */
-  static kxRefresh_defaults() {
+  static kx_RefreshDefaults() {
    // each standard alphabet as key in the translator.
    if (!SizedBigInt.kx_tr) {
      SizedBigInt.kx_tr={};
