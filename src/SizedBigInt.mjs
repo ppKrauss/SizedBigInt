@@ -28,67 +28,6 @@ export default class SizedBigInt {
       this.fromInt(val, bits, maxBits)
   }
 
-  /**
-   * Internal class-level cache-builder for Base4h and Base16ph complete translations.
-   * and generates all other kx_baseLabel global defaults. Singleton Design Pattern.
-   */
-  static kxRefresh_defaults() {
-   // each standard alphabet as key in the translator.
-   if (!SizedBigInt.kx_tr) {
-     SizedBigInt.kx_tr={};
-     SizedBigInt.kx_baseLabel = {
-       "2":   { base:2, alphabet:"01", isDefault:true, ref:"ECMA-262" }
-       ,"4h": {
-         base:4, isDefault:true,
-         useHalfDigit:true,
-         alphabet:"0123GH", case:"upper",
-         regex:'^([0123]*)([GH])?$',
-         ref:"SizedBigInt"
-         }
-       ,"16h": {
-         base:16, isDefault:true,
-         useHalfDigit:true,
-         alphabet:"0123456789abcdefGHIJKLMNOPQRST",
-         regex:'^([0-9a-f]*)([G-T])?$',
-         ref:"SizedBigInt"
-       }
-       ,"4js":   { alphabet:"0123", ref:"ECMA-262" }
-       ,"8js":   { alphabet:"01234567", isDefault:true, ref:"ECMA-262" }
-       ,"16js":  { alphabet:"0123456789abcdef", ref:"ECMA-262" } // RFC 4648 sec 8 is upper
-       ,"32hex": { alphabet:"0123456789abcdefghijklmnopqrstuv", isDefault:true, ref:"RFC 4648 sec. 7" }
-       ,"32pt":  { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"Portuguese encodings" }
-       ,"32rfc": { alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", ref:"RFC 4648 sec. 6" }
-       ,"32ghs": { alphabet:"0123456789bcdefghjkmnpqrstuvwxyz", ref:"Geohash, classical of 2008" }
-       ,"64url": {
-         alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
-         isDefault:true, ref:"RFC 4648 sec. 5"
-       }
-     };
-     SizedBigInt.kx_baseLabel_setRules();
-
-     SizedBigInt.kx_tr['4h-to-2'] = {
-       "G":"0","H":"1", // HalfDigit to binary
-       "0":"00", "1":"01", "2":"10", "3":"11", // standard base4 to binary
-     };
-     SizedBigInt.kx_tr['2-to-4h']  = SizedBigInt.objSwap(SizedBigInt.kx_tr['4h-to-2']);
-     SizedBigInt.kx_trConfig('16js'); // '16js-to-2' and '2-to-16js'
-     SizedBigInt.kx_tr['16h-to-2'] = Object.assign(
-         SizedBigInt.kx_tr['16js-to-2'],
-         {
-           "G":"0","H":"1", // HalfDigit to binary
-           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-HalfDigits to binary
-           "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-HalfDigits
-         }
-     );
-     SizedBigInt.kx_tr['2-to-16h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['16h-to-2']);
-     // any other kx_tr[] must to use the fabric kx_trConfig().
-   } // \if
-  }
-
-  clone() {
-    return new SizedBigInt(this.val, null, this.bits)
-  }
-
   static createMany(a) { // mulple constructor
     let t = typeof a;
     // if (a instanceof Set) ... if (WeakMap) ...
@@ -99,6 +38,13 @@ export default class SizedBigInt {
         ([k, v]) => ({ [k]: new SizedBigInt(v) })
       ));
     else throw new Error("Invalid input type, use Array or Object");
+  }
+
+  // // //
+  // Clone utilities:
+
+  clone() {
+    return new SizedBigInt(this.val, null, this.bits)
   }
 
   /**
@@ -215,77 +161,7 @@ export default class SizedBigInt {
   }
 
   // // //
-  // Etc. and order:
-
-  /**
-   * Swap-object utility.
-   * @return object with swapped key-values.
-   */
-  static objSwap(obj) {
-    return Object.entries(obj).reduce(
-      (obj, [key,value])  =>  ({ ...obj, [value]: key }),  {}
-    )
-  }
-
-  /**
-   * Apply correction rules to SizedBigInt.kx_baseLabel.
-   */
-  static kx_baseLabel_setRules(label=null) {
-    let scan = label? [label]: Object.keys(SizedBigInt.kx_baseLabel)
-    const rAlpha = {falsetrue:"upper", falsefalse:true, truefalse:"lower", truetrue:false};
-    for (let i of scan) {
-      const r = SizedBigInt.kx_baseLabel[i]
-      if (!r.base)         r.base = r.alphabet.length;
-      if (!r.bitsPerDigit) r.bitsPerDigit = Math.log2(r.base);
-      if (!r.useHalfDigit) r.useHalfDigit = false;
-      let alphaRgx = r.alphabet.replace('-','\\-')
-      if (!r.regex)  r.regex =  '^(['+ alphaRgx +']+)$';
-      if (!r.case)
-        r.case = rAlpha[String(r.alphabet==r.alphabet.toLowerCase()) + (r.alphabet==r.alphabet.toUpperCase())]
-      let aux = (r.case===false)? 'i': '';
-      if (typeof r.regex =='string')  r.regex = new RegExp(r.regex,aux);
-      if (r.isDefault===undefined)    r.isDefault=false;
-      if (r.isDefault && i!=r.base) SizedBigInt.kx_baseLabel[String(r.base)] = {isAlias: i};
-      aux = String(r.bitsPerDigit) +','+ r.bitsPerDigit;
-      if (i!='2')
-        r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})*)([01]*)$');
-      r.label = i
-    } // \for
-  }
-
-  /**
-   * Check and normalize the base label. Access the global kx_baseLabel.
-   * @param string label
-   * @param boolean retLabel, to return string instead pointer.
-   * @return object pointer (to the correct kx_baseLabel), or a string with normalized label.
-   */
-  static baseLabel(label,retLabel=false) {
-    let t = typeof label;
-    if (t=='number') label = String(label);
-    else if (t=='boolean' || !label) label='2';
-    label = label.toLowerCase();
-    if (label.slice(0,3)=='base') label = label.slice(3);
-    var r = SizedBigInt.kx_baseLabel[label]
-    if (!r) throw new Error(`label "${label}" not exists, must be registered`);
-    if (r.isAlias) r = SizedBigInt.kx_baseLabel[r.isAlias];
-    return retLabel? r.label: r;
-  }
-
-  /**
-   * Internal cache-builder for input radix methods. Generates the non-default objects.
-   * Changes the state of SizedBigInt.kx_tr.
-   */
-  static kx_trConfig(baseLabel) {
-    const r = SizedBigInt.kx_baseLabel[baseLabel];
-    if (!r || r.isAlias) throw new Error(`label "${baseLabel}" not exists or is alias`);
-    let label = r.label + '-to-2'
-    if (!SizedBigInt.kx_tr[label]) SizedBigInt.kx_tr[label] = {};
-    for (let i=0; i<r.base; i++) { // scans alphabet
-        let c = r.alphabet.charAt(i)
-        SizedBigInt.kx_tr[label][c] = i.toString(2).padStart(r.bitsPerDigit,'0')
-    }
-    SizedBigInt.kx_tr['2-to-'+r.label] = SizedBigInt.objSwap(SizedBigInt.kx_tr[label]);
-  }
+  // Order and other:
 
   /**
    * Compare two SizedBigInt's, by numeric or lexicographic order.
@@ -329,6 +205,36 @@ export default class SizedBigInt {
 
 
   /**
+   * Swap-object utility.
+   * @return object with swapped key-values.
+   */
+  static objSwap(obj) {
+    return Object.entries(obj).reduce(
+      (obj, [key,value])  =>  ({ ...obj, [value]: key }),  {}
+    )
+  }
+
+
+  /**
+   * Check and normalize the base label. Access the global kx_baseLabel.
+   * @param string label
+   * @param boolean retLabel, to return string instead pointer.
+   * @return object pointer (to the correct kx_baseLabel), or a string with normalized label.
+   */
+  static baseLabel(label,retLabel=false) {
+    let t = typeof label;
+    if (t=='number') label = String(label);
+    else if (t=='boolean' || !label) label='2';
+    label = label.toLowerCase();
+    if (label.slice(0,3)=='base') label = label.slice(3);
+    var r = SizedBigInt.kx_baseLabel[label]
+    if (!r) throw new Error(`label "${label}" not exists, must be registered`);
+    if (r.isAlias) r = SizedBigInt.kx_baseLabel[r.isAlias];
+    return retLabel? r.label: r;
+  }
+
+
+  /**
    * Changes current val to a truncate prefix (most significative part).
    * Trucated is same as createSplitAt(bits)[0];
    * @param bits, number of bits of the result.
@@ -339,5 +245,107 @@ export default class SizedBigInt {
     return this.fromBinaryString( this.toString(2).slice(0,bits) );
   }
 
+
+  // // //
+  // Iternal use, cache-manager methods:
+
+  /**
+   * Internal class-level cache-builder for Base4h and Base16ph complete translations.
+   * and generates all other kx_baseLabel global defaults. Singleton Design Pattern.
+   */
+  static kxRefresh_defaults() {
+   // each standard alphabet as key in the translator.
+   if (!SizedBigInt.kx_tr) {
+     SizedBigInt.kx_tr={};
+     SizedBigInt.kx_baseLabel = {
+       "2":   { base:2, alphabet:"01", isDefault:true, ref:"ECMA-262" }
+       ,"4h": {
+         base:4, isDefault:true,
+         useHalfDigit:true,
+         alphabet:"0123GH", case:"upper",
+         regex:'^([0123]*)([GH])?$',
+         ref:"SizedBigInt"
+         }
+       ,"16h": {
+         base:16, isDefault:true,
+         useHalfDigit:true,
+         alphabet:"0123456789abcdefGHIJKLMNOPQRST",
+         regex:'^([0-9a-f]*)([G-T])?$',
+         ref:"SizedBigInt"
+       }
+       ,"4js":   { alphabet:"0123", ref:"ECMA-262" }
+       ,"8js":   { alphabet:"01234567", isDefault:true, ref:"ECMA-262" }
+       ,"16js":  { alphabet:"0123456789abcdef", ref:"ECMA-262" } // RFC 4648 sec 8 is upper
+       ,"32hex": { alphabet:"0123456789abcdefghijklmnopqrstuv", isDefault:true, ref:"RFC 4648 sec. 7" }
+       ,"32pt":  { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"Portuguese encodings" }
+       ,"32rfc": { alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", ref:"RFC 4648 sec. 6" }
+       ,"32ghs": { alphabet:"0123456789bcdefghjkmnpqrstuvwxyz", ref:"Geohash, classical of 2008" }
+       ,"64url": {
+         alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+         isDefault:true, ref:"RFC 4648 sec. 5"
+       }
+     };
+     SizedBigInt.kx_baseLabel_setRules();
+
+     SizedBigInt.kx_tr['4h-to-2'] = {
+       "G":"0","H":"1", // HalfDigit to binary
+       "0":"00", "1":"01", "2":"10", "3":"11", // standard base4 to binary
+     };
+     SizedBigInt.kx_tr['2-to-4h']  = SizedBigInt.objSwap(SizedBigInt.kx_tr['4h-to-2']);
+     SizedBigInt.kx_trConfig('16js'); // '16js-to-2' and '2-to-16js'
+     SizedBigInt.kx_tr['16h-to-2'] = Object.assign(
+         SizedBigInt.kx_tr['16js-to-2'],
+         {
+           "G":"0","H":"1", // HalfDigit to binary
+           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-HalfDigits to binary
+           "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-HalfDigits
+         }
+     );
+     SizedBigInt.kx_tr['2-to-16h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['16h-to-2']);
+     // any other kx_tr[] must to use the fabric kx_trConfig().
+   } // \if
+  }
+
+  /**
+   * Apply correction rules to SizedBigInt.kx_baseLabel.
+   */
+  static kx_baseLabel_setRules(label=null) {
+    let scan = label? [label]: Object.keys(SizedBigInt.kx_baseLabel)
+    const rAlpha = {falsetrue:"upper", falsefalse:true, truefalse:"lower", truetrue:false};
+    for (let i of scan) {
+      const r = SizedBigInt.kx_baseLabel[i]
+      if (!r.base)         r.base = r.alphabet.length;
+      if (!r.bitsPerDigit) r.bitsPerDigit = Math.log2(r.base);
+      if (!r.useHalfDigit) r.useHalfDigit = false;
+      let alphaRgx = r.alphabet.replace('-','\\-')
+      if (!r.regex)  r.regex =  '^(['+ alphaRgx +']+)$';
+      if (!r.case)
+        r.case = rAlpha[String(r.alphabet==r.alphabet.toLowerCase()) + (r.alphabet==r.alphabet.toUpperCase())]
+      let aux = (r.case===false)? 'i': '';
+      if (typeof r.regex =='string')  r.regex = new RegExp(r.regex,aux);
+      if (r.isDefault===undefined)    r.isDefault=false;
+      if (r.isDefault && i!=r.base) SizedBigInt.kx_baseLabel[String(r.base)] = {isAlias: i};
+      aux = String(r.bitsPerDigit) +','+ r.bitsPerDigit;
+      if (i!='2')
+        r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})*)([01]*)$');
+      r.label = i
+    } // \for
+  }
+
+  /**
+   * Internal cache-builder for input radix methods. Generates the non-default objects.
+   * Changes the state of SizedBigInt.kx_tr.
+   */
+  static kx_trConfig(baseLabel) {
+    const r = SizedBigInt.kx_baseLabel[baseLabel];
+    if (!r || r.isAlias) throw new Error(`label "${baseLabel}" not exists or is alias`);
+    let label = r.label + '-to-2'
+    if (!SizedBigInt.kx_tr[label]) SizedBigInt.kx_tr[label] = {};
+    for (let i=0; i<r.base; i++) { // scans alphabet
+        let c = r.alphabet.charAt(i)
+        SizedBigInt.kx_tr[label][c] = i.toString(2).padStart(r.bitsPerDigit,'0')
+    }
+    SizedBigInt.kx_tr['2-to-'+r.label] = SizedBigInt.objSwap(SizedBigInt.kx_tr[label]);
+  }
 
 } // \class
