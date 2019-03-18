@@ -87,6 +87,13 @@ export default class SizedBigInt {
     return this.fromBinaryString( this.toString(2).slice(0,bits) );
   }
 
+  truncCloning2(bits) { // is cloning?
+    if (!bits || bits<0 || bits>this.bits)
+	return new SizedBigInt();
+    else
+	return new SizedBigInt( this.toString(2).slice(0,bits), 2 );
+  }
+
   // // //
   // Input methods:
 
@@ -138,7 +145,7 @@ export default class SizedBigInt {
       if (isNum)  this.val =
         maxBits? BigInt.asUintN( maxBits, String(Math.abs(val)) )
         : BigInt( String(val) );
-      else this.val = val; // is a clone?
+      else this.val = val; //maxBits? BigInt.asUintN( maxBits, val ) : val;
       let l = this.val.toString(2).length  // ? check https://stackoverflow.com/q/54758130/287948
       this.bits = bits? bits: l;
       if (l>this.bits)
@@ -197,30 +204,49 @@ export default class SizedBigInt {
    * @param lexOrder null or boolean to lexicographic order, else numeric order.
    * @return integer 0 when a=b, 1 when a>b, -1 otherwise.
    */
-  static compare(SizedBigInt_a, SizedBigInt_b, cmpLex=null) {
-    if (SizedBigInt.compare_invert)
-      [SizedBigInt_a, SizedBigInt_b] = [SizedBigInt_b, SizedBigInt_a];
-    if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
-      // lexicographic order:
-      let a = SizedBigInt_a.toString(2)
-      let b = SizedBigInt_b.toString(2)
-      return (a>b)? 1: ( (a==b)? 0: -1 )
-    } else { // numeric order:
-      let bitsDiff = SizedBigInt_a.bits - SizedBigInt_b.bits
-      if (bitsDiff) return bitsDiff;
-      else {
-        let bigDiff = SizedBigInt_a.val - SizedBigInt_b.val
-        return (bigDiff==0n)? 0: ( (bigDiff>0n)? 1: -1 )
+   static compare(a, b, cmpLex=null) {
+     if (a===undefined || b===undefined || a===null || b===null || a.val===null || b.val===null)
+       throw new Error("Empty, null or undefined inputs are invalid");
+     if (SizedBigInt.compare_invert)
+       [a, b] = [b, a];
+     if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
+       /* see proof at https://math.stackexchange.com/q/3142409/70274
+       //let a2 = a.val<<1n; let b2 = b.val<<1n; a2 = a2>>BigInt(bitsDiff)
+      Testing alternative numeric algoritm for lexicographic order:
+      let bitsDiff = a.bits - b.bits;
+      let xa; let df;
+      if (bitsDiff>0) {
+        xa = Number(a.val)/(2**bitsDiff)
+        df = xa - Number(b.val)
+      } else if (bitsDiff<0) {
+        xa = Number(a.val)
+        df = xa - Number(b.val)/(2**(-bitsDiff))
+      } else {
+        xa = Number(a.val)
+        df = xa - Number(b.val)
       }
-    }
-  }
+      return (!xa && !df)? bitsDiff: df;
+      */
+      //  direct explicit lexicographic order:
+      let str_a = a.toString(2)
+      let str_b = b.toString(2)
+      return (str_a>str_b)? 1: ( (str_a==str_b)? 0: -1 )
+     } else { // numeric order:
+       let bitsDiff = a.bits - b.bits
+       if (bitsDiff) return bitsDiff;
+       else {
+         let valDiff = a.val - b.val
+         return (valDiff==0n)? 0: ( (valDiff>0n)? 1: -1 )
+       }
+     }
+   }
 
   /**
    * Sort or reverse-sort of an array of SizedBigInt's.
-   * Changes the input array.
-   * @param a Array of SizedBigInt instances, to reverse order.
-   * @param lexOrder boolean to lexicographic order, else numeric order.
-   * @param descOrder boolean to descendent order, else ascendent.
+   * Mutate the input array.
+   * @param a Array of SizedBigInt instances to be ordered (mutaded).
+   * @param lexOrder boolean to lexicographic order, else numeric order (default).
+   * @param descOrder boolean to descendent order, else ascendent (default).
    */
   static sort(a, lexOrder=false, descOrder=false) {
     SizedBigInt.compare_lexicographic = lexOrder
@@ -256,7 +282,6 @@ export default class SizedBigInt {
     if (r.isAlias) r = SizedBigInt.kx_baseLabel[r.isAlias];
     return retLabel? r.label: r;
   }
-
 
   // // //
   // Iternal use, cache-manager methods:

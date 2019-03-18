@@ -1,5 +1,6 @@
 /**
- * SizedBigInt class. This Opt2 implements internal hidden-bit value representation.
+ * SizedBigInt class by hidden-bit.
+ * This Opt2 implements internal hidden-bit value representation.
  * Didactic/simplified  implementaion. Only illustrative, please avoid to use.
  * Implements only base4h and hierarchical binary strings.
  *
@@ -22,8 +23,11 @@ export default class SizedBigInt { // (hidden bit version)
     };
 
     let t = typeof val;
-    if (t=='object') {
-       if (val instanceof Array) [val,radix,bits,maxBits]=val;
+    if (val && t=='object') { // not-null object
+       if (val instanceof SizedBigInt)
+        [val,radix,bits,maxBits]=[val.val,null,val.bits,null]; // clone()
+       else if (val instanceof Array)
+        [val,radix,bits,maxBits]=val;
        else ({val,radix,bits,maxBits} = val);
        t = typeof val
     }
@@ -39,7 +43,7 @@ export default class SizedBigInt { // (hidden bit version)
   }
 
   clone() {
-    return new SizedBigInt(this)
+    return new SizedBigInt( this.toBinaryString(), 2 )
   }
 
   // // //
@@ -51,6 +55,26 @@ export default class SizedBigInt { // (hidden bit version)
       : this.fromBinaryString(val);
   }
 
+  fromInt_TESTING(val,bits=0) { // bug
+    //non-optimized, must use bitwise operations, and compare performance with old (string).
+    const TWO = BigInt(2)
+    let t = typeof val
+    let isNum = (t=='number')
+    if (t == 'bigint' || isNum) {
+      if (isNum)  val = BigInt.asUintN( this.maxBits, String(val) );
+      let l = SizedBigInt.bigint_log2(val)
+      bits = bits? bits: l
+      if (l>bits)  throw new Error("invalid input value, bigger than input bit-length: "+l+","+bits+","+val);
+      if (bits>this.maxBits) throw new Error(`bit-length exceeded the limit ${this.maxBits}`);
+      this.val = val+TWO**BigInt(bits) // add one bit, ideal is bitwise instead generic power.
+      this.kx_bits = bits
+    } else {
+      this.val  = null
+      this.kx_bits = null;
+    }
+    return this
+  }
+
   fromInt(val,bits=0) {
     let t = typeof val
     let isNum = (t=='number')
@@ -59,11 +83,11 @@ export default class SizedBigInt { // (hidden bit version)
       let strbin  = val.toString(2);
       let l = strbin.length
       bits = bits? bits: l
-      if (l>bits)  throw new Error("invalid input value, bigger than input bit-length");
-      if (bits>this.maxBits) throw new Error(`bit-length exceeded the limit ${this.maxBits}`);
+      if (l>bits)  throw new Error("invalid input value, bigger than input bit-length: "+l+","+bits+","+val);
       return this.fromBinaryString(strbin,bits)
     } else {
       this.val  = null
+      this.kx_bits = null;
       return this
     }
   }
@@ -76,7 +100,7 @@ export default class SizedBigInt { // (hidden bit version)
       bits = strval.length
     if (bits>this.maxBits) throw new Error("er02, bits greater than maxBits");
     this.val = BigInt("0b1"+strval) // prefix "1"!
-    //console.log(" bin debug:",bits,"0b1"+strval,this.val)
+    this.kx_bits = bits;
     return this
   }
 
@@ -91,52 +115,87 @@ export default class SizedBigInt { // (hidden bit version)
   // // //
   // Getters and output methods:
 
-  valueOf() { return this.val; } // GAMBI, with first bit '1'
+  get bits() {
+    if (!this.kx_bits)
+      this.kx_bits = SizedBigInt.bigint_log2(this.val)
+    return this.kx_bits;
+  }
 
-  get value() { return this.toString(4) }
+  toBigInt() {
+    // any way to remove first bit!?
+    //let mask = BigInt( "0b"+(2**(this.bits-1)-1).toString(2) )
+    //return this.val & mask;
+    let aux = this.toBinaryString()
+    return aux? BigInt( "0b"+aux ): null;
+  } // GAMBI, with first bit '1'
+
+  toBinaryString(){
+    return (this.val===null)
+      ? ''
+      : this.val.toString(2).slice(1);
+  }
 
   toString(radix) { // melhor usar base4?
     if (radix==2)
-      return (this.val===null)
-        ? ''
-        : this.val.toString(2).slice(1); // remove first 1!
-    let b = this.toString(2) // recurrence
-    if (radix!=4 && radix!='4h') {  // GAMBI, revisar
+      return this.toBinaryString(); // remove first 1!
+    else if (radix!=4 && radix!='4h') {  // GAMBI, revisar
       if (this.val===null) return '[0,null]';
-      let bits = b.length
-      let v = BigInt('0b'+b)
-      return `[${bits},${v}]` // (not coercing to array)
+      let xx = this.toBigInt()
+      return `[${this.bits},${xx}]` // (not coercing to array)
     }
+    let b = this.toBinaryString()
     let r = ''
-    for (let i=0; i<b.length; i=i+2)
+    let xx=''
+    for (let i=0; i<b.length; i=i+2){
       r += this.kx.alpha_itr[ b.charAt(i)+b.charAt(i+1) ];
+      xx+= b.charAt(i)+b.charAt(i+1)+"."
+    }
     return r;
+  }
+
+  // Utilities:
+
+  static bigint_log2(n) {
+     // Calculates the integer log2() of a BigInt...
+     // = BitLength when n is a BigInt with left hiddem bit.
+     const C1 = BigInt(1)
+     const C2 = BigInt(2)
+     for(var count=0, n=n; n>C1; count++)  n = n/C2
+     //can be optimized! see https://github.com/peterolson/BigInteger.js/issues/121
+     // ideal is to use webAssembler to acess BSR https://stackoverflow.com/a/994709/287948
+     // https://stackoverflow.com/a/47074187/287948
+     // but must used with primitive type BigInt...
+     return count
   }
 
   // // //
   // Order
 
   /**
-   * Compare two SizedBigInt's, by numeric or lexicographic order.
-   * Changes the input array.
+   * Compare two external SizedBigInt's, by numeric or lexicographic order.
    * Flags lexOrder by external SizedBigInt.compare_lexicographic when not null.
-   * @param a Array of SizedBigInt instances, to reverse order.
-   * @param lexOrder null or boolean to lexicographic order, else numeric order.
+   * @param a SizedBigInt, first item.
+   * @param b SizedBigInt, second item.
    * @return integer 0 when a=b, 1 when a>b, -1 otherwise.
    */
-  static compare(SizedBigInt_a, SizedBigInt_b, cmpLex=null) {
-    if (SizedBigInt.compare_invert)
-      [SizedBigInt_a, SizedBigInt_b] = [SizedBigInt_b, SizedBigInt_a];
-    if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
-      // lexicographic order: can use Uint32Array()  views?
-      let a = SizedBigInt_a.toString(2)
-      let b = SizedBigInt_b.toString(2)
-      return (a>b)? 1: ( (a==b)? 0: -1 )
-    } else { // numeric order:
-      let bigDiff = SizedBigInt_a.val - SizedBigInt_b.val
-      return (bigDiff==0n)? 0: ((bigDiff>0n)? 1: -1)
-    }
-  }
+   static compare(a, b, cmpLex=null) {
+     var dif
+     if (SizedBigInt.compare_invert)
+       [a, b] = [b, a];
+     if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
+       // binary lexicographic order:
+       let al = a.bits //SizedBigInt.bigint_log2(a.val) // bitLength of a
+       let bl = b.bits // SizedBigInt.bigint_log2(b.val)
+       if (al==bl)
+         dif = a.val - b.val
+       else if (al>bl) // normalize a
+         dif = a.val/BigInt(2**(al-bl)) - b.val
+       else            // normalize b
+         dif = a.val - b.val/BigInt(2**(bl-al))
+    } else // numeric order:
+       dif = a.val - b.val
+   return dif? ((dif>0n)? 1: -1) : 0;
+   }
 
   /**
    * Sort or reverse-sort of an array of SizedBigInt's.

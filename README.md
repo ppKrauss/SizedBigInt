@@ -1,12 +1,16 @@
 # SizedBigInt
 
+* For main implementation, see  [src/SizedBigInt.mjs](src/SizedBigInt.mjs), runs with NodeJS and main browsers.
+
+* For demos and simplified implementations, see  [src](src). The assert files are at [data/assert*.txt](data).
+
+Text, etc. **under construction**.
+
+## Introduction
+
 Sometimes we need [natural numbers](https://en.wikipedia.org/wiki/Natural_number), but a kind of number where 0 is not equal to 00.
 
 Sized BigInt's are arbitrary-precision integers ([BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)) with defined number of bits, to represent hashes, labels, encodings, hierarchical indexes or any other that need to differenciate `0` and `00`,  preserving all other numeric interpretations, like order (`002`&gt;`001`) and the freedom to translate its positional  notation to  [some especific radix](https://en.wikipedia.org/wiki/Radix#In_numeral_systems) (e.g. binary to quaternary or hexadecimal).
-
-<!--
-To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`](http://ppKrauss.github.com/SizedBigInt).
--->
 
 ## Basic examples
 
@@ -47,10 +51,14 @@ Here a set of elements illustrated with different representations, listed by lex
 
 Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *set* is the mathematical reference-concept for implementations.
 
-As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit&#8209;length&nbsp;*l*  and numeric value&nbsp;*n*, a Natural number.  Supposing a maximal bit-length *lmax*, the set <b><i>X</i><sub>lmax</sub></b> is a SizedBigInt set constrained by *L*:
+As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit&#8209;length&nbsp;*l*  and numeric value&nbsp;*n*, a Natural number.  Supposing a minimum bit-length function, *minBL()*, the set <b><i>X</i><sub>k</sub></b> is a SizedBigInt set constrained by  *k*, the maximum number of bits:
 <!--![](assets/equations02.344px.png)-->
 
-![](assets/equations02.png)
+![](assets/equation06-main.png)
+
+where
+
+![](assets/equation06-minBL.v2.png)
 
 ## Representations
 
@@ -59,9 +67,8 @@ Natural numbers can be expressed with [positional notation](https://en.wikipedia
 The SizedBigInt's are like BigInt's **without the rule of remove leading zeros**, and the SizedBigInt must be the same in any base representation. This last condiction is a problem: as we see at table-1, there are no base4 representation for `0`, because each digit in base4 need 2 bits.
 
 ### Base2
-The base2 representation is the simplest and the canonic one. The **SizedBigInt Base2 string representation** is the usual base2 augemented with the "use leading zeros" rule. So `00` is a valid SizedBigInt Base2 number, and is not equal to usual `0`.
 
-<!--, so it is the reference-representation.-->
+The base2 representation is the simplest and **the canonic** one. The **SizedBigInt Base2 string representation** is the usual base2 augemented with the "use leading zeros" rule. So `00` is a valid SizedBigInt Base2 number, and is not equal to&nbsp;`0`.
 
 ### Base4h
 
@@ -185,12 +192,29 @@ let x2 = new SizedBigInt('012G');      // default base4h string val
 let y1 = new SizedBigInt(1234567890123456789n); // BigInt val
 let y2 = new SizedBigInt(123,null,55); // Number val, initialized with 55 bits
 let z  = new SizedBigInt();  // z is null, can be changed by z.fromInt(123)
+
 console.log('toString: ' + [x1,x2,y1,y2,z], "\nDebug object:", x1)
+// toString: [20,700236],[7,12],[61,1234567890123456789],[55,123],[0,null]
+// Debug object: SizedBigInt { bits: 20, val: 700236n }
+console.log('x1 Base4h: ', x1.toString('4h'),"x1 Base32:", x1.toString(32))
+// x1 Base4h:  2222331030   x1 Base32: lbqc
 ```
 
-To test and see another  examples of use, see demo01 and demo02 described [above](#Implementation using BigInt).
+To test and see another  examples, see demo01 and demo02 described [above](#Implementation using BigInt).
 
+<!--
+LIXO
 ## Applications
+
+Diversos counjuntos fractais (construídos por recorrência) podem ter seus elementos indexados por números
+
+https://en.wikipedia.org/wiki/Cantor_set
+
+https://peerj.com/articles/cs-171/
+
+https://en.wikipedia.org/wiki/Binary_tree
+
+![](assets/cantorSetIdx-v01.png)
 
 Here some illustrative applications, no one is real, because it is a new issue:
 
@@ -203,6 +227,17 @@ Here some illustrative applications, no one is real, because it is a new issue:
 2. Trucated [cryptographic hashes](https://en.wikipedia.org/wiki/Cryptographic_hash_function): the standard hashes are too long to humans, the most usual is to adopt some truncation level, to compare two hashes or to show a list of few hashes. The truncation can be used also as alternative stantandard, discrding original hash.
 
   2.1. [SHA1](https://en.wikipedia.org/wiki/SHA-1) example. The SHA1 standard use 160 bits (20 bytes). After truncate it to 30 bits, how to  represent it in hexadecimals  preserving the same prefix? With base16h is possible.<br/>   SHA1("hello")=`aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d`.  Trucanding 3 digits, `aaf`, so 3*4=12 bits.  Truncating to any number of bits **preserving prefix**: to 13 bits `aafG`, to 21 bits `aaf4cG`, to 35 bits `aaf4c61dS`, to 38 bits `aaf4c61ddL`.<br/>PS: standard hexadecimal conversion for same numbers will be `aaf`, `155e`, `155e98`, `557a630ee`  and `2abd318777`.
+
+-->
+
+## Foundations
+There are some alternative theoretic foundations: [2-adic number](https://en.wikipedia.org/wiki/P-adic_number) system, binary labels (indexes) of nodes of [Complete Binary Tree](https://en.wikipedia.org/wiki/Binary_tree) or binary labels (identifiers) of elements of [Cantor Set](https://en.wikipedia.org/wiki/Cantor_set). The most simple is to use Cantor Set.
+
+![](assets/cantorSetIdx-v01.png)
+
+<!--
+To a complete guide see the [project's page at `ppKrauss.github.com/SizedBigInt`](http://ppKrauss.github.com/SizedBigInt).
+-->
 
 ## Terminology
 

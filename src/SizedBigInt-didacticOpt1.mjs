@@ -1,5 +1,6 @@
 /**
- * SizedBigInt class. This Opt1 implements internal (bits,val) representation.
+ * SizedBigInt class by (size,value).
+ * This Opt1 implements internal (bits,val) representation.
  * Didactic/simplified implementaion. Only illustrative, please avoid to use.
  *
  * Implements only base4h and hierarchical binary strings.

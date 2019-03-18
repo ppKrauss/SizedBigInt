@@ -42,8 +42,9 @@ import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}
 
   // LISTS:
   console.log("\t--- DEBUG1 SORT lexicographic:")
-  SizedBigInt.sort(lst,true) // false is default
+  //SizedBigInt.sort(lst,true) // false is default
   for(let i of lst) console.log(i.toString('4h'))
+
   console.log("\t--- DEBUG2 SORT numeric revert:")
   SizedBigInt.sort(lst,false,true)
   for(let i of lst) console.log(i.toString('4h'))
