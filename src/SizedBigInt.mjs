@@ -210,23 +210,6 @@ export default class SizedBigInt {
      if (SizedBigInt.compare_invert)
        [a, b] = [b, a];
      if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
-       /* see proof at https://math.stackexchange.com/q/3142409/70274
-       //let a2 = a.val<<1n; let b2 = b.val<<1n; a2 = a2>>BigInt(bitsDiff)
-      Testing alternative numeric algoritm for lexicographic order:
-      let bitsDiff = a.bits - b.bits;
-      let xa; let df;
-      if (bitsDiff>0) {
-        xa = Number(a.val)/(2**bitsDiff)
-        df = xa - Number(b.val)
-      } else if (bitsDiff<0) {
-        xa = Number(a.val)
-        df = xa - Number(b.val)/(2**(-bitsDiff))
-      } else {
-        xa = Number(a.val)
-        df = xa - Number(b.val)
-      }
-      return (!xa && !df)? bitsDiff: df;
-      */
       //  direct explicit lexicographic order:
       let str_a = a.toString(2)
       let str_b = b.toString(2)

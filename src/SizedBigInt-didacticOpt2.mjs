@@ -32,7 +32,7 @@ export default class SizedBigInt { // (hidden bit version)
        t = typeof val
     }
     // set to default values when 0, null or undefined:
-    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=64
+    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=1024
 
     this.maxBits = maxBits
     SizedBigInt.compare_invert=null;
@@ -184,16 +184,16 @@ export default class SizedBigInt { // (hidden bit version)
        [a, b] = [b, a];
      if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
        // binary lexicographic order:
-       let al = a.bits //SizedBigInt.bigint_log2(a.val) // bitLength of a
-       let bl = b.bits // SizedBigInt.bigint_log2(b.val)
-       if (al==bl)
+       let bdif = a.bits - b.bits
+       if (bdif) {
+         dif = (bdif>0)
+           ? a.val/BigInt(2**bdif) - b.val     // normalize a
+           : a.val - b.val/BigInt(2**(-bdif)); // normalize b
+         if (!dif) dif = bdif;
+       } else
          dif = a.val - b.val
-       else if (al>bl) // normalize a
-         dif = a.val/BigInt(2**(al-bl)) - b.val
-       else            // normalize b
-         dif = a.val - b.val/BigInt(2**(bl-al))
     } else // numeric order:
-       dif = a.val - b.val
+       dif = a.val - b.val  // valid because the hiddenBit preserves leading zeros
    return dif? ((dif>0n)? 1: -1) : 0;
    }
 

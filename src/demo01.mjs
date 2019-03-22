@@ -38,16 +38,32 @@ import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}
   // MAIN:
   console.log("\n\nbits\tBinary\tBase4h")
   b4h = new SizedBigInt(0)
-  showBase4hValues(8) // change to any number of bits... take care with output overflow.
+  showBase4hValues(12) // change to any number of bits... take care with output overflow.
+
+
+
+  SizedBigInt.sort(lst,true,false)
+  SizedBigInt.sort(lst,false,true)  // lexOrder, descOrder
+  SizedBigInt.sort(lst,false,true)  // lexOrder, descOrder
+
+  SizedBigInt.sort(lst,true,false)
+  SizedBigInt.sort(lst,false,true)  // lexOrder, descOrder
+  SizedBigInt.sort(lst,false,true)  // lexOrder, descOrder
+
 
   // LISTS:
-  console.log("\t--- DEBUG1 SORT lexicographic:")
-  //SizedBigInt.sort(lst,true) // false is default
+  console.log("\t--- DEBUG1 SORT ASC lexicographic:")
+  SizedBigInt.sort(lst,true,false)
   for(let i of lst) console.log(i.toString('4h'))
 
-  console.log("\t--- DEBUG2 SORT numeric revert:")
-  SizedBigInt.sort(lst,false,true)
+  console.log("\t--- DEBUG2 SORT DESC lexicographic:")
+  SizedBigInt.sort(lst,true,true)  // lexOrder, descOrder
   for(let i of lst) console.log(i.toString('4h'))
+  
+  console.log("\t--- DEBUG2 SORT DESC numeric:")
+  SizedBigInt.sort(lst,false,true)  // lexOrder, descOrder
+  for(let i of lst) console.log(i.toString('4h'))
+
 
 });
 

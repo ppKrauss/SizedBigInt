@@ -29,7 +29,7 @@ export default class SizedBigInt {
        t = typeof val
     }
     // set to default values when 0, null or undefined:
-    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=64
+    if (!radix) radix = 4; if (!bits) bits=0; if (!maxBits) maxBits=1024
 
     this.maxBits = maxBits
     if (t=='string')
