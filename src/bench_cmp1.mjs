@@ -1,9 +1,9 @@
 // // // // // // //
 // Benckmark for opt1 and opt2, sort performance.
-// USE ON TERMINAL:
-//  time node  --experimental-modules bench_sort1.mjs main
-//  time node  --experimental-modules bench_sort1.mjs opt2
-//  time node  --experimental-modules bench_sort1.mjs opt1
+// USE ON TERMINAL: by "node" ou "time node"
+//  node  --experimental-modules bench_sort1.mjs main
+//  node  --experimental-modules bench_sort1.mjs opt2
+//  node  --experimental-modules bench_sort1.mjs opt1
 //
 
 'use strict';
@@ -11,6 +11,7 @@
 const fileOpts = {
    opt1: './SizedBigInt-didacticOpt1.mjs'
   ,opt2: './SizedBigInt-didacticOpt2.mjs'
+  ,opt3: './sOpt2.mjs'
   ,main: './SizedBigInt.mjs'
 };
 var b4h;
@@ -21,26 +22,36 @@ const BB = BigInt('0x12fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 // loop config:
 const maxRange = 90000
 
-console.log( "\n--- BEGIN BENCHMARK ---" )
-console.log( "  xconfigs:", maxRange, AA.toString(32) )
+console.log("---  configs:")
+console.log(" ",maxRange, AA.toString(32) )
 
-import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}) => {
+let lib = fileOpts[process.argv[2]]
+if (!lib) throw new Error("Invalid argument. Use opt1/opt2/opt3/main\n");
+import( lib ).then(({default: SizedBigInt}) => {
 
   // MAIN:
   let sbiA = new SizedBigInt(AA)
   let sbiB = new SizedBigInt(BB)
   let x=0;
+  let bench_name='--- BENCHMARK COMPARE'
+  console.time(bench_name)
   for(let i=0; i<maxRange; i++)
     x += SizedBigInt.compare(sbiA,sbiB,true)
   for(let i=0; i<maxRange; i++) {
     let t = new SizedBigInt(AA+BigInt(i))
     x += SizedBigInt.compare(sbiA,t,true)
-    x += SizedBigInt.compare(t,sbiA,true)
-    x += SizedBigInt.compare(sbiB,t,true)
-    x += SizedBigInt.compare(t,sbiB,true)
-    x += SizedBigInt.compare(t,sbiA,true)
+      + SizedBigInt.compare(t,sbiA,true)
+      + SizedBigInt.compare(sbiB,t,true)
+      + SizedBigInt.compare(t,sbiB,true)
+      + SizedBigInt.compare(t,sbiA,true)
+      //  repeat all:
+      + SizedBigInt.compare(sbiA,t,true)
+      + SizedBigInt.compare(t,sbiA,true)
+      + SizedBigInt.compare(sbiB,t,true)
+      + SizedBigInt.compare(t,sbiB,true)
+      + SizedBigInt.compare(t,sbiA,true)
   }
-  console.log("  check sum:",x)
-  console.log("--- END ---\n")
-
+  console.log("  Check sum:",x)
+  console.timeEnd(bench_name)
+  console.log("--- END")
 });

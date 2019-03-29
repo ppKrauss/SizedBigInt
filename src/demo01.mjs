@@ -38,7 +38,7 @@ import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}
   // MAIN:
   console.log("\n\nbits\tBinary\tBase4h")
   b4h = new SizedBigInt(0)
-  showBase4hValues(12) // change to any number of bits... take care with output overflow.
+  showBase4hValues(8) // change to any number of bits... take care with output overflow.
 
 
 

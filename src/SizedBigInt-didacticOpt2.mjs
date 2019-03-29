@@ -117,7 +117,7 @@ export default class SizedBigInt { // (hidden bit version)
 
   get bits() {
     if (!this.kx_bits)
-      this.kx_bits = SizedBigInt.bigint_log2(this.val)
+      this.kx_bits = SizedBigInt.bigint_log2(this.val);
     return this.kx_bits;
   }
 
@@ -156,16 +156,9 @@ export default class SizedBigInt { // (hidden bit version)
   // Utilities:
 
   static bigint_log2(n) {
-     // Calculates the integer log2() of a BigInt...
-     // = BitLength when n is a BigInt with left hiddem bit.
-     const C1 = BigInt(1)
-     const C2 = BigInt(2)
-     for(var count=0, n=n; n>C1; count++)  n = n/C2
-     //can be optimized! see https://github.com/peterolson/BigInteger.js/issues/121
-     // ideal is to use webAssembler to acess BSR https://stackoverflow.com/a/994709/287948
-     // https://stackoverflow.com/a/47074187/287948
-     // but must used with primitive type BigInt...
-     return count
+    // n is a positive BigInt.
+    // best performance as https://stackoverflow.com/q/55355184/287948
+    return n.toString(2).length - 1
   }
 
   // // //

@@ -1,14 +1,19 @@
-id,is_default,alphabet_label,base,bits,alphabet,reference_url,notes
-base2,yes,iso,2,1,01,http://doi.org/10.1112/plms/s2-42.1.230,turing machine
-base4,yes,js,4,2,0123,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,
-base8,yes,js,8,3,01234567,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,
-base10,yes,iso,10,3.32,0123456789,https://en.wikipedia.org/wiki/Arabic_numerals,
-base16,yes,js,16,4,0123456789abcdef,https://tools.ietf.org/html/rfc4648#section-8,"RFC 4648, sec. 8 (Base 16 Encoding)"
-base32ghs,,ghs,32,5,0123456789bcdefghjkmnpqrstuvwxyz,https://en.wikipedia.org/wiki/Geohash,Geohash
-base32hex,yes,hex,32,5,0123456789abcdefghijklmnopqrstuv,https://tools.ietf.org/html/rfc4648#section-7,"RFC 4648, sec. 7 (Base 32 Encoding with Extended Hex Alphabet)"
-base32pt,,pt,32,5,0123456789BCDFGHJKLMNPQRSTUVWXYZ,,"Brasil, Receita Federal, normas do SINTER, Cadastro Imobiliário Nacional (CIN)"
-base32rfc,,rfc,32,5,ABCDEFGHIJKLMNOPQRSTUVWXYZ234567,https://tools.ietf.org/html/rfc4648#section-6,"RFC 4648, sec. 6 (Base 32 Encoding)"
-base36,yes,js,36,5.17,0123456789abcdefghijklmnopqrstuvwxyz,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,check if case sensitive or upper
-base58btc,yes,btc,58,5.86,123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz,https://en.bitcoin.it/wiki/Base58Check_encoding,Bitcoin
-base64rfc,,rfc,64,6,ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/,https://tools.ietf.org/html/rfc4648#section-4,"RFC 4648, sec. 4 (Base 64 Encoding)"
-base64url,yes ,url,64,6,ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_,https://tools.ietf.org/html/rfc4648#section-5,"RFC 4648, sec. 5 (Base 64 Encoding with URL and Filename Safe Alphabet)"
+id,is_default,base,alphabet_label,bits,alphabet,reference_url,notes
+base2js,yes,2,js,1,01,http://doi.org/10.1112/plms/s2-42.1.230,"Turing machine (1937), Shannon model (1948) and ECMA-262"
+base4js,yes,4,js,2,0123,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,ECMA-262
+base4h,no,4,h,2,0123 GH,https://github.com/ppKrauss/SizedBigInt,ECMA + HalfDigit for SizedBigInt
+base8js,yes,8,js,3,01234567,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,ECMA-262
+base8h,no,8,h,3,01234567 GH IJKL,https://github.com/ppKrauss/SizedBigInt,ECMA + HalfDigit for SizedBigInt
+base10iso,yes,10,iso,3.32,0123456789,https://www.iso.org/standard/31887.html,ISO 80000-2:2009
+base16js,yes,16,js,4,0123456789abcdef,https://tools.ietf.org/html/rfc4648#section-8,"ECMA-262 and RFC 4648, sec. 8 (Base 16 Encoding)"
+base16h,no,16,h,4,0123456789abcdef GH IJKL MNOPQRST,https://github.com/ppKrauss/SizedBigInt,ECMA + HalfDigit for SizedBigInt
+base20js,yes,20,js,4.32,0123456789abcdefghij,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,ECMA-262
+base20olc,no,20,olc,4.32,23456789CFGHJMPQRVWX,https://github.com/google/open-location-code,"OLC, Open Location Code"
+base32hex,yes,32,hex,5,0123456789abcdefghijklmnopqrstuv,https://tools.ietf.org/html/rfc4648#section-7,"ECMA-262 and RFC 4648, sec. 7 (Base 32 Encoding with Extended Hex Alphabet)"
+base32ghs,no,32,ghs,5,0123456789bcdefghjkmnpqrstuvwxyz,https://en.wikipedia.org/wiki/Geohash,Geohash
+base32pt,no,32,pt,5,0123456789BCDFGHJKLMNPQRSTUVWXYZ,,"Brasil, Receita Federal, normas do SINTER, Cadastro Imobiliário Nacional (CIN)"
+base32rfc,no,32,rfc,5,ABCDEFGHIJKLMNOPQRSTUVWXYZ234567,https://tools.ietf.org/html/rfc4648#section-6,"RFC 4648, sec. 6 (Base 32 Encoding)"
+base36js,yes,36,js,5.17,0123456789abcdefghijklmnopqrstuvwxyz,https://www.ecma-international.org/ecma-262/6.0/#sec-number.prototype.tostring,ECMA-262
+base58btc,yes,58,btc,5.86,123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz,https://en.bitcoin.it/wiki/Base58Check_encoding,Bitcoin convention
+base64url,yes,64,url,6,ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_,https://tools.ietf.org/html/rfc4648#section-5,"RFC 4648, sec. 5 (Base 64 Encoding with URL and Filename Safe Alphabet)"
+base64rfc,no,64,rfc,6,ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/,https://tools.ietf.org/html/rfc4648#section-4,"RFC 4648, sec. 4 (Base 64 Encoding)"

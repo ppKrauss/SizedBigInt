@@ -4,9 +4,9 @@
 
 * For demos and simplified implementations, see  [src](src). The assert files are at [data/assert*.txt](data).
 
-* Collabore 
+* Text, etc. **under construction**. Help [at this link to **improve the text of foundations**](https://docs.google.com/document/d/19_X_QXpY56-72Aw7voWoPXclcGuZi7fosCNDj6uOcQM/).
 
-Text, etc. **under construction**.
+* Collabore: [reporting issues](https://github.com/ppKrauss/SizedBigInt/issues), reviewing text of foundations, or installing and testing the SizedBigInt class.
 
 ## Introduction
 

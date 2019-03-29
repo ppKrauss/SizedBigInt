@@ -50,14 +50,24 @@ export default class SizedBigInt {
   // Clone utilities:
 
   /**
-   * Clone the instance, optional truncCloning().
-   * @param bits null to ignore or integer greater tham zero to trunc by first bits.
+   * Clone the instance, optionals truncCloning() and successor (by lexical or numeric order).
+   * @param bits_or_next null to ignore;
+   *          integer (BITS) greater tham zero to trunc by first bits;
+   *          string (NEXT) with "fixbits" or "lexical" for compute the "next value".
+   * @param cycle boolean to return to 0 after maxvalue, used by NEXT.
+   * @param maxBits integer or null, max depth or bits, used by NEXT Lexical.
    */
-  clone(bits=null) {
-    if (bits) {
-      let tmp = new SizedBigInt(this.val, null, this.bits)
-      tmp.truncCloning(bits);
-      return tmp;
+  clone(bits_or_next=null, cycle=false, maxBits=null) {
+    if (bits_or_next) {
+      if (typeof(bits_or_next) == 'string')
+        return (bits_or_next.charAt(0)=='f') // f=fix=fixbits l=lex=lexicalOrder
+          ? new SizedBigInt( this.fixbits_next(cycle), null, this.bits )
+          : new SizedBigInt( this.lexOrder_next_str(maxBits,cycle), 2 );
+      else {
+        let tmp = new SizedBigInt(this.val, null, this.bits)
+        tmp.truncCloning(bits_or_next);
+        return tmp;
+      }
     } else
       return new SizedBigInt(this.val, null, this.bits)
   }
@@ -70,7 +80,7 @@ export default class SizedBigInt {
    */
    splitCloning(bits) {
     if (!bits || bits<0 || bits>this.bits) return null;
-    let strbin = this.toString(2)
+    let strbin = this.toBinaryString()
     return [
       new SizedBigInt( strbin.slice(0,bits), 2 ),
       new SizedBigInt( strbin.slice(bits), 2 )
@@ -84,14 +94,14 @@ export default class SizedBigInt {
    */
   truncCloning(bits) {
     if (!bits || bits<0 || bits>this.bits) return this;
-    return this.fromBinaryString( this.toString(2).slice(0,bits) );
+    return this.fromBinaryString( this.toBinaryString().slice(0,bits) );
   }
 
   truncCloning2(bits) { // is cloning?
     if (!bits || bits<0 || bits>this.bits)
 	return new SizedBigInt();
     else
-	return new SizedBigInt( this.toString(2).slice(0,bits), 2 );
+	return new SizedBigInt( this.toBinaryString().slice(0,bits), 2 );
   }
 
   // // //
@@ -170,6 +180,12 @@ export default class SizedBigInt {
 
   get value() { return [this.bits,this.val] }
 
+  toBinaryString(){
+    return (this.val===null)
+      ? ''
+      : this.val.toString(2).padStart(this.bits,'0');
+  }
+
   /**
    * Overrides the default toString() method and implements radix convertions.
    * @param radix optional, the base-label (see keys of SizedBigInt.kx_baseLabel)
@@ -179,11 +195,10 @@ export default class SizedBigInt {
       return `[${this.bits},${this.val}]`; // Overrides Javascript toString()
     let rTo = SizedBigInt.baseLabel(radix,false)
     if (this.val===null || (!rTo.useHalfDigit && this.bits % rTo.bitsPerDigit != 0))
-      return '';
+      return ''
+    let b = this.toBinaryString()
     if (rTo.base==2)
-      return this.val.toString(2).padStart(this.bits,'0');
-
-    let b = this.toString(2) // recurrence
+      return b
     let trLabel = '2-to-'+rTo.label
     if (!SizedBigInt.kx_tr[trLabel]) SizedBigInt.kx_trConfig(rTo.label);
     let tr = SizedBigInt.kx_tr[trLabel]
@@ -211,8 +226,8 @@ export default class SizedBigInt {
        [a, b] = [b, a];
      if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
       //  direct explicit lexicographic order:
-      let str_a = a.toString(2)
-      let str_b = b.toString(2)
+      let str_a = a.toBinaryString()
+      let str_b = b.toBinaryString()
       return (str_a>str_b)? 1: ( (str_a==str_b)? 0: -1 )
      } else { // numeric order:
        let bitsDiff = a.bits - b.bits
@@ -239,6 +254,43 @@ export default class SizedBigInt {
   }
 
   /**
+   * Get the "next SizedBigInt" by lexicographic order, returning base2 string.
+   * The successor only makes sense when we define maxBits. It is a "+1" operator.
+   * Error (returning null) on maxBits minor tham size or on maximum value.
+   * @param maxBits integer (positive non-zero), the maximum number of bits (depth of a complete binary tree).
+   * @param cycle boolean flag to use Sized Integers as cyclic group (no error on maximum value)
+   * @return null string base2 representation of the successor of the current state.
+   */
+  lexOrder_next_str(maxBits=null,cycle=false) {
+     let t = this.bits
+     if (!t) return null;
+     if (!maxBits) maxBits=t; else if (t>maxBits) return null;
+     let x = this.toBinaryString()
+     if (t<maxBits) return x+'0';
+     t--
+     if (x[t]=='0') return x.slice(0,t)+'1';
+     else return (x==''.padEnd(maxBits,'1'))? (cycle?'0':null): x.slice(1);
+  }
+
+  /**
+   * Get the "last numeric SizedBigInt" using same number of bits.
+   * @return BitInt of the "same-bit-length" maximum value.
+   */
+  fixbits_last() {
+     return 2n**BigInt(this.bits)-1n
+  }
+  /**
+   * Get the "next numeric SizedBigInt" using same number of bits.
+   * @param cycle boolean flag to use Sized Integers as cyclic group (no error on maximum value)
+   * @return null or BitInt of the "same-bit-length successor" of the current state.
+   */
+  fixbits_next(cycle=false) {
+     return (this.val!==this.fixbits_last())
+        ? this.val+1n
+        : (cycle? 0n: null);
+  }
+
+  /**
    * Swap-object utility.
    * @return object with swapped key-values.
    */
@@ -246,6 +298,19 @@ export default class SizedBigInt {
     return Object.entries(obj).reduce(
       (obj, [key,value])  =>  ({ ...obj, [value]: key }),  {}
     )
+  }
+
+  /**
+   * Calculates the integer log2() of a BigInt... So, its number of bits.
+   * @param n BigInt positive.
+   * @return Number with the ilog2(n)=ceil(log2(n))
+   */
+  static ilog2(n) {
+    return n.toString(2).length - (
+      (n<0n)
+      ? 2 //discard bit of minus
+      : 1
+    );
   }
 
   /**
