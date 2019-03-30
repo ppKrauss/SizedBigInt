@@ -1,12 +1,11 @@
 
-
+<!-- zoom 150% at math.stack page -->
 ![](equation07-main.png)
-
 
 $$X_k = \left\{
    \begin{array}{rl}
      P_k \cup X_{k-1} & ~~\text{if }  k>1 \\
-     \{0,1\} & ~~\text{if } k=1.
+     P_1 & ~~\text{if } k=1.
    \end{array}\right.$$
 
 ![](equation06-minBL.v2.png)
