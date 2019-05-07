@@ -1,18 +1,18 @@
 # SizedBigInt
 
-Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) implemented by BigInts (natural numbers with user-defined quantity of bits), to represent hashes, labels and hierarchical indexes.
+Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) for Javascript implementations (using native BigInts), to represent hashes, labels and hierarchical indexes.
 
 * For main implementation, see  [src/SizedBigInt.mjs](src/SizedBigInt.mjs), runs with NodeJS and main browsers.
 
 * For demos and simplified implementations, see  [src](src). The assert files are at [data/assert*.txt](data).
 
-* Text, etc. **under construction**. Help [at this link to **improve the text of foundations**](https://docs.google.com/document/d/19_X_QXpY56-72Aw7voWoPXclcGuZi7fosCNDj6uOcQM/).
+* Text, etc. under construction. **See [PDF](http://osm.codes/_foundations/art1.pdf)** or help [at this link to **improve the text of foundations**](https://docs.google.com/document/d/19_X_QXpY56-72Aw7voWoPXclcGuZi7fosCNDj6uOcQM/).
 
 * Collabore: [reporting issues](https://github.com/ppKrauss/SizedBigInt/issues), reviewing text of foundations, or installing and testing the SizedBigInt class.
 
 ## Brief presentation
 
-(summarizing the contents of ["Sized Naturals as foundation for hierarchical labelingand extend hexadecimals for any bit string size"](http://osm.codes/_foundations/art1.pdf) - PDF).
+(summarizing the contents of the [PDF](http://osm.codes/_foundations/art1.pdf) - "Sized Naturals as foundation for hierarchical labelingand extend hexadecimals for any bit string size").
 
 Sometimes we need [natural numbers](https://en.wikipedia.org/wiki/Natural_number), but a kind of number where 0 is not equal to 00.
 
@@ -26,12 +26,12 @@ The following examples  can be mathematically described as a **finite sets** of 
 
 * The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (base4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <br/><i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
 
-Ordering the illustred elements. The order in ordinary mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **pseudo-numeric order**, using the bit-length as first criterium and numeric order as second.
+* Ordering. The order in ordinary mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **pseudo-numeric order**, using the bit-length as first criterium and numeric order as second.
 
 Here a set of elements illustrated with different representations, listed by lexicographic order of the binary representation:
 ```
                     Representation   
-    (size,value)   Binary              Base4
+    (size,value)   Binary                   Base4
     (1,0)	    0                        ?
     (2,0)	    00                       0
     (3,0)	    000                      ?
@@ -54,7 +54,7 @@ Here a set of elements illustrated with different representations, listed by lex
 
 Each SizedBigInt is an *element* of a [*set*](https://en.wikipedia.org/wiki/Set_theory). The formal definition of this *set* is the mathematical reference-concept for implementations.
 
-As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit&#8209;length&nbsp;*l*  and numeric value&nbsp;*n*, a Natural number.  Supposing a minimum bit-length function, *minBL()*, the set <b><i>X</i><sub>k</sub></b> is a SizedBigInt set constrained by  *k*, the maximum number of bits:
+As showed in the table above, we can represent elements of a set *X* as [ordered pairs](https://en.wikipedia.org/wiki/Ordered_pair), (*l*,*n*) of bit&#8209;length&nbsp;*l*  and numeric value&nbsp;*n*, a Natural number.  Supposing a minimum bit-length function, *minBL()*, the set <b><i>X</i><sub>k</sub></b> is a SizedBigInt set constrained by  *k*, the maximum number of bits:
 <!--![](assets/equations02.344px.png)-->
 
 ![](assets/equation06-main.png)
@@ -62,6 +62,8 @@ As showed in Table-1 we can represent elements of a set *X* as [ordered pairs](h
 where
 
 ![](assets/equation06-minBL.v2.png)
+
+
 
 ### Representations
 
