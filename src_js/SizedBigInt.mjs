@@ -194,7 +194,7 @@ export default class SizedBigInt {
     if (radix===undefined)
       return `[${this.bits},${this.val}]`; // Overrides Javascript toString()
     let rTo = SizedBigInt.baseLabel(radix,false)
-    if (this.val===null || (!rTo.useHalfDigit && this.bits % rTo.bitsPerDigit != 0))
+    if (this.val===null || (!rTo.useHDigit && this.bits % rTo.bitsPerDigit != 0))
       return ''
     let b = this.toBinaryString()
     if (rTo.base==2)
@@ -345,22 +345,29 @@ export default class SizedBigInt {
      SizedBigInt.kx_baseLabel = {
        "2":   { base:2, alphabet:"01", isDefault:true, ref:"ECMA-262" }
        ,"4h": {
-         base:4, isDefault:true,
-         useHalfDigit:true,
+         base:4,
+         useHDigit:true,
          alphabet:"0123GH", case:"upper",
          regex:'^([0123]*)([GH])?$',
          ref:"SizedBigInt"
          }
+       ,"8h": {
+         base:8,
+         useHDigit:true,
+         alphabet:"012345678GHIJKLMNOPQRST",
+         regex:'^([0-8]*)([G-T])?$',
+         ref:"SizedBigInt"
+       }
        ,"16h": {
-         base:16, isDefault:true,
-         useHalfDigit:true,
+         base:16,
+         useHDigit:true,
          alphabet:"0123456789abcdefGHIJKLMNOPQRST",
          regex:'^([0-9a-f]*)([G-T])?$',
          ref:"SizedBigInt"
        }
-       ,"4js":   { alphabet:"0123", ref:"ECMA-262" }
+       ,"4js":   { alphabet:"0123", isDefault:true, ref:"ECMA-262" }
        ,"8js":   { alphabet:"01234567", isDefault:true, ref:"ECMA-262" }
-       ,"16js":  { alphabet:"0123456789abcdef", ref:"ECMA-262" } // RFC 4648 sec 8 is upper
+       ,"16js":  { alphabet:"0123456789abcdef", isDefault:true, ref:"ECMA-262" } // RFC 4648 sec 8 is upper
        ,"32hex": { alphabet:"0123456789abcdefghijklmnopqrstuv", isDefault:true, ref:"RFC 4648 sec. 7" }
        ,"32pt":  { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"Portuguese encodings" }
        ,"32rfc": { alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", ref:"RFC 4648 sec. 6" }
@@ -371,22 +378,34 @@ export default class SizedBigInt {
        }
      };
      SizedBigInt.kx_baseLabel_setRules();
-
+     // Base4h
      SizedBigInt.kx_tr['4h-to-2'] = {
-       "G":"0","H":"1", // HalfDigit to binary
+       "G":"0","H":"1", // hDigit to binary
        "0":"00", "1":"01", "2":"10", "3":"11", // standard base4 to binary
      };
      SizedBigInt.kx_tr['2-to-4h']  = SizedBigInt.objSwap(SizedBigInt.kx_tr['4h-to-2']);
+     // Base8h
+     SizedBigInt.kx_trConfig('8js'); // '8js-to-2' and '2-to-8js'
+     SizedBigInt.kx_tr['8h-to-2'] = Object.assign(
+         SizedBigInt.kx_tr['8js-to-2'],
+         {
+           "G":"0","H":"1", // 1-bit-hDigit to binary
+           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-hDigits to binary
+         }
+     );
+     SizedBigInt.kx_tr['2-to-8h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['8h-to-2']);
+     // Base16h
      SizedBigInt.kx_trConfig('16js'); // '16js-to-2' and '2-to-16js'
      SizedBigInt.kx_tr['16h-to-2'] = Object.assign(
          SizedBigInt.kx_tr['16js-to-2'],
          {
-           "G":"0","H":"1", // HalfDigit to binary
-           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-HalfDigits to binary
-           "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-HalfDigits
+           "G":"0","H":"1", // hDigit to binary
+           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-hDigits to binary
+           "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-hDigits
          }
      );
      SizedBigInt.kx_tr['2-to-16h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['16h-to-2']);
+
      // any other kx_tr[] must to use the fabric kx_trConfig().
    } // \if
   }
@@ -401,7 +420,7 @@ export default class SizedBigInt {
       const r = SizedBigInt.kx_baseLabel[i]
       if (!r.base)         r.base = r.alphabet.length;
       if (!r.bitsPerDigit) r.bitsPerDigit = Math.log2(r.base);
-      if (!r.useHalfDigit) r.useHalfDigit = false;
+      if (!r.useHDigit) r.useHDigit = false;
       let alphaRgx = r.alphabet.replace('-','\\-')
       if (!r.regex)  r.regex =  '^(['+ alphaRgx +']+)$';
       if (!r.case)
