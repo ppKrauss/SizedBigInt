@@ -47,12 +47,3 @@ function showBase4hValues(maxBits, cur = ''){
     showBase4hValues(maxBits, next)
   } // \for
 } // \func
-
-////
-let klst = Object.keys(SizedBigInt.kx_tr)
-klst.sort();
-for(let i of klst)
-  console.log(i)
-
-for(let i of klst)
-  console.log(i,JSON.stringify(SizedBigInt.kx_tr[i]))
