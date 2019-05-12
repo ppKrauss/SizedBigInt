@@ -1,28 +1,29 @@
 // // // // // // //
 // Lista diversos valores em diversas bases.
-//  node  --experimental-modules lix.mjs |more
+//  node  --experimental-modules demo04.mjs |more
 //
 'use strict';
 import SizedBigInt from './SizedBigInt.mjs'; // change to Opt1
 
 // configs:
-var spLen = 4
-var spLen2 = 4
 const sp = ' '
 // inits:
-var b4h = new SizedBigInt('0010100101',2)
-var pos=0
-console.log(b4h.toString('8h'))
+var b4h = new SizedBigInt(1)
+
 // MAIN:
 console.log("\nn;v | Base4h| Base4| b8| b8h | b16 | b16h | b32 |32ghs")
 
-
+// configs block1:
+var spLen = 4
+var spLen2 = 4
+var pos=0
 showBase4hValues(5) // change to any number of bits... take care with output overflow.
 console.log("\n total de itens: "+pos+"\n")
 
+// configs block2:
 spLen = 17
 spLen2 = 8
-pos=0
+pos=0  // reinit
 showBase4hValues(35,'00100111011111100100101000101')
 console.log("\n total de itens: "+pos+"\n")
 
@@ -47,4 +48,11 @@ function showBase4hValues(maxBits, cur = ''){
   } // \for
 } // \func
 
-//console.log(JSON.stringify(SizedBigInt.kx_tr))
+////
+let klst = Object.keys(SizedBigInt.kx_tr)
+klst.sort();
+for(let i of klst)
+  console.log(i)
+
+for(let i of klst)
+  console.log(i,JSON.stringify(SizedBigInt.kx_tr[i]))

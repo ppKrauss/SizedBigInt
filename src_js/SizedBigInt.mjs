@@ -194,7 +194,7 @@ export default class SizedBigInt {
     if (radix===undefined)
       return `[${this.bits},${this.val}]`; // Overrides Javascript toString()
     let rTo = SizedBigInt.baseLabel(radix,false)
-    if (this.val===null || (!rTo.useHDigit && this.bits % rTo.bitsPerDigit != 0))
+    if (this.val===null || (!rTo.isHierar && this.bits % rTo.bitsPerDigit != 0))
       return ''
     let b = this.toBinaryString()
     if (rTo.base==2)
@@ -343,33 +343,39 @@ export default class SizedBigInt {
    if (!SizedBigInt.kx_tr) {
      SizedBigInt.kx_tr={};
      SizedBigInt.kx_baseLabel = {
-       "2":   { base:2, alphabet:"01", isDefault:true, ref:"ECMA-262" }
+       "2":   { base:2, alphabet:"01", ref:"ECMA-262" }
+       ,"2h":  {
+         base:2, alphabet:"01",
+         isDefault:true,
+         isHierar:true, // use leading zeros (0!=00).
+         ref:"SizedNaturals"
+       }
        ,"4h": {
          base:4,
-         useHDigit:true,
+         isHierar:true, // use hDigit and leading zeros.
          alphabet:"0123GH", case:"upper",
          regex:'^([0123]*)([GH])?$',
-         ref:"SizedBigInt"
+         ref:"SizedNaturals"
          }
        ,"8h": {
          base:8,
-         useHDigit:true,
-         alphabet:"012345678GHIJKLMNOPQRST",
-         regex:'^([0-8]*)([G-T])?$',
-         ref:"SizedBigInt"
+         isHierar:true,
+         alphabet:"01234567GHJKLM",  // 2*8-2=14 characters
+         regex:'^([0-7]*)([GHJ-M])?$',
+         ref:"SizedNaturals"
        }
        ,"16h": {
          base:16,
-         useHDigit:true,
-         alphabet:"0123456789abcdefGHIJKLMNOPQRST",
-         regex:'^([0-9a-f]*)([G-T])?$',
-         ref:"SizedBigInt"
+         isHierar:true,
+         alphabet:"0123456789abcdefGHJKLMNPQRSTVZ", //2*16-2=30 characters
+         regex:'^([0-9a-f]*)([GHJ-NP-TVZ])?$',
+         ref:"SizedNaturals"
        }
        ,"4js":   { alphabet:"0123", isDefault:true, ref:"ECMA-262" }
        ,"8js":   { alphabet:"01234567", isDefault:true, ref:"ECMA-262" }
        ,"16js":  { alphabet:"0123456789abcdef", isDefault:true, ref:"ECMA-262" } // RFC 4648 sec 8 is upper
        ,"32hex": { alphabet:"0123456789abcdefghijklmnopqrstuv", isDefault:true, ref:"RFC 4648 sec. 7" }
-       ,"32pt":  { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"Portuguese encodings" }
+       ,"32nvu": { alphabet:"0123456789BCDFGHJKLMNPQRSTUVWXYZ", ref:"No-Vowels except U (near non-syllabic)" }
        ,"32rfc": { alphabet:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", ref:"RFC 4648 sec. 6" }
        ,"32ghs": { alphabet:"0123456789bcdefghjkmnpqrstuvwxyz", ref:"Geohash, classical of 2008" }
        ,"64url": {
@@ -378,35 +384,7 @@ export default class SizedBigInt {
        }
      };
      SizedBigInt.kx_baseLabel_setRules();
-     // Base4h
-     SizedBigInt.kx_tr['4h-to-2'] = {
-       "G":"0","H":"1", // hDigit to binary
-       "0":"00", "1":"01", "2":"10", "3":"11", // standard base4 to binary
-     };
-     SizedBigInt.kx_tr['2-to-4h']  = SizedBigInt.objSwap(SizedBigInt.kx_tr['4h-to-2']);
-     // Base8h
-     SizedBigInt.kx_trConfig('8js'); // '8js-to-2' and '2-to-8js'
-     SizedBigInt.kx_tr['8h-to-2'] = Object.assign(
-         SizedBigInt.kx_tr['8js-to-2'],
-         {
-           "G":"0","H":"1", // 1-bit-hDigit to binary
-           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-hDigits to binary
-         }
-     );
-     SizedBigInt.kx_tr['2-to-8h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['8h-to-2']);
-     // Base16h
-     SizedBigInt.kx_trConfig('16js'); // '16js-to-2' and '2-to-16js'
-     SizedBigInt.kx_tr['16h-to-2'] = Object.assign(
-         SizedBigInt.kx_tr['16js-to-2'],
-         {
-           "G":"0","H":"1", // hDigit to binary
-           "I":"00","J":"01","K":"10","L":"11",  // 2-bit-hDigits to binary
-           "M":"000","N":"001","O":"010","P":"011","Q":"100","R":"101","S":"110","T":"111" // 3-bit-hDigits
-         }
-     );
-     SizedBigInt.kx_tr['2-to-16h'] = SizedBigInt.objSwap(SizedBigInt.kx_tr['16h-to-2']);
-
-     // any other kx_tr[] must to use the fabric kx_trConfig().
+     // to prepare cache, for example Bae16h, run here SizedBigInt.kx_trConfig('16h')
    } // \if
   }
 
@@ -420,8 +398,11 @@ export default class SizedBigInt {
       const r = SizedBigInt.kx_baseLabel[i]
       if (!r.base)         r.base = r.alphabet.length;
       if (!r.bitsPerDigit) r.bitsPerDigit = Math.log2(r.base);
-      if (!r.useHDigit) r.useHDigit = false;
-      let alphaRgx = r.alphabet.replace('-','\\-')
+      if (!r.alphabet) throw new Error(`err2, invalid null alphabet`);
+      if (!r.isHierar) r.isHierar = false;
+      else if (r.alphabet.length<(r.base*2-2))
+        throw new Error(`err3, invalid hierarchical alphabet in "${baseLabel}": ${r.alphabet}`);
+      let alphaRgx = r.alphabet.replace('-','\\-');
       if (!r.regex)  r.regex =  '^(['+ alphaRgx +']+)$';
       if (!r.case)
         r.case = rAlpha[String(r.alphabet==r.alphabet.toLowerCase()) + (r.alphabet==r.alphabet.toUpperCase())]
@@ -431,7 +412,7 @@ export default class SizedBigInt {
       if (r.isDefault && i!=r.base) SizedBigInt.kx_baseLabel[String(r.base)] = {isAlias: i};
       aux = String(r.bitsPerDigit) +','+ r.bitsPerDigit;
       if (i!='2')
-        r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})*)([01]*)$');
+        r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})*)'+(r.isHierar?'([01]*)':'')+'$');
       r.label = i
     } // \for
   }
@@ -443,11 +424,22 @@ export default class SizedBigInt {
   static kx_trConfig(baseLabel) {
     const r = SizedBigInt.kx_baseLabel[baseLabel];
     if (!r || r.isAlias) throw new Error(`label "${baseLabel}" not exists or is alias`);
+    if (r.base==2) return;
+    if (r.base>64) throw new Error(`Base-${r.base} is invalid`);
     let label = r.label + '-to-2'
     if (!SizedBigInt.kx_tr[label]) SizedBigInt.kx_tr[label] = {};
     for (let i=0; i<r.base; i++) { // scans alphabet
         let c = r.alphabet.charAt(i)
         SizedBigInt.kx_tr[label][c] = i.toString(2).padStart(r.bitsPerDigit,'0')
+    }
+    if (r.isHierar) {
+      let alphaPos = r.base;
+      for(var bits=1; bits<r.bitsPerDigit; bits++)
+        for (let i=0; i<2**bits; i++) {
+          let c = r.alphabet.charAt(alphaPos)
+          SizedBigInt.kx_tr[label][c] = i.toString(2).padStart(bits,'0')
+          alphaPos++
+        } // \for i, \for bits
     }
     SizedBigInt.kx_tr['2-to-'+r.label] = SizedBigInt.objSwap(SizedBigInt.kx_tr[label]);
   }
