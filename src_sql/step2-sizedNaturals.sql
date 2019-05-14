@@ -176,12 +176,27 @@ $f$ LANGUAGE plpgsql IMMUTABLE;
 --- Uses direct bigint (62 bits) with 2 hidden bits encapsulatting SizedNatural.
 
 CREATE or replace FUNCTION sizednat.vbit_to_hidbig(p varbit) RETURNS bigint AS $f$
+  SELECT varbit_to_bigint(b'01' || $1)
+  --SELECT CASE  WHEN blen>62 OR blen<1 THEN NULL::bigint
+  --  ELSE  sizednat.vbit_to_bigint(b'1' || $1)  END
+  --FROM (SELECT bit_length($1)) t(blen)
+$f$ LANGUAGE SQL IMMUTABLE STRICT;
+
+CREATE or replace FUNCTION sizednat.hidbig_to_vbit(p bigint) RETURNS varbit AS $f$
+  SELECT substring(
+    $1::bit(64) FROM (65 - bigint_usedbits($1)) -- (65-1=64 to 65-64=1)
+  ) WHERE $1>7 AND $1<4611686018427387904
+$f$ LANGUAGE SQL IMMUTABLE STRICT;
+
+/*
+CREATE or replace FUNCTION sizednat.vbit_to_hidbig(p varbit) RETURNS bigint AS $f$
   SELECT CASE
     WHEN blen>62 OR blen<1 THEN NULL::bigint
     ELSE  (b'0' || $1 || b'1')::bit(64)::bigint -- signal (0 = +) and "finish mark".
     END
   FROM (SELECT bit_length($1)) t(blen)
 $f$ LANGUAGE SQL IMMUTABLE STRICT;
+*/
 
 CREATE or replace FUNCTION sizednat.pair_to_hidbig(
   n int,  -- num. of bits
@@ -190,30 +205,6 @@ CREATE or replace FUNCTION sizednat.pair_to_hidbig(
   SELECT sizednat.vbit_to_hidbig(  substring(v::bit(64) FROM 65-n)  )
 $f$ LANGUAGE SQL IMMUTABLE STRICT;
 
-
-CREATE or replace FUNCTION sizednat.bigint_rightmost_bitpos(
-  x bigint
-) RETURNS int AS $f$
--- brute force solution. Please review. Ideal use C implementing
--- in C there are direct __builtin_ctz()+1 to do the same.
--- see also https://stackoverflow.com/a/48974850
-DECLARE
-    pos int DEFAULT 0;
-BEGIN
-   IF x<1 THEN RETURN NULL; END IF;
-   LOOP EXIT WHEN x&1=1; -- bignt bitise and
-      pos := pos + 1;
-      x   := x >> 1; -- bigint rotate
-   END LOOP;
-   RETURN pos;
-END;
-$f$ LANGUAGE plpgsql IMMUTABLE STRICT;
-
-CREATE or replace FUNCTION sizednat.hidbig_to_vbit(p bigint) RETURNS varbit AS $f$
-  SELECT substring(
-    $1::bit(64) FROM  2  FOR  62-sizednat.bigint_rightmost_bitpos($1)
-  )
-$f$ LANGUAGE SQL IMMUTABLE STRICT;
 
 
 ---------------------------
@@ -229,7 +220,6 @@ CREATE or replace FUNCTION sizednat.hidbig_toString(
   SELECT sizednat.vbit_toString(sizednat.hidbig_to_vbit($1),$2)
 $wrap$ LANGUAGE SQL IMMUTABLE;
 -- select sizednat.hidbig_toString(7999999999999949993,'16h'), sizednat.hidbig_toString(80,'4h');
-
 
 
 ---------------------------
@@ -278,12 +268,20 @@ $f$ LANGUAGE SQL IMMUTABLE STRICT;
 -- ASSERTS: TESTING IMPLEMENTED FUNCTIONS:
 
 DO $assert_sec$
-begin ASSERT (  -- check that is reversible
- SELECT bool_and( sizednat.hidbig_to_vbit(y2)=y ) res
- FROM (
-   SELECT sizednat.vbit_to_hidbig(y::varbit) y2, y
-   FROM generate_series(0,512) t(x),
-   LATERAL unnest( array[x::bit(9), (random()*2305843009213693950.0)::bigint::bit(62)] )  y
- ) t2), 'something wrong with hidbig_to_vbit or vbit_to_hidbig functions';
+begin
+ASSERT
+  (  -- check that is reversible
+   SELECT bool_and(res=y AND res is not null AND y is not null)
+   FROM (
+     SELECT  sizednat.hidbig_to_vbit(y2) res, y
+     FROM (
+       SELECT sizednat.vbit_to_hidbig(y::varbit) y2, y
+       FROM generate_series(0,512) t(x),
+       LATERAL unnest( array[x::bit(9), (random()*2305843009213693950.0)::bigint::bit(61)] )  y
+     ) t2
+   ) t3
+ ),
+ 'something wrong with hidbig_to_vbit or vbit_to_hidbig functions'
+;
 end;
 $assert_sec$;
