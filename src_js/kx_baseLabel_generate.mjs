@@ -5,13 +5,17 @@
 
 'use strict';
 import SizedBigInt from './SizedBigInt.mjs'; // change to Opt1
-// see SizedBigInt.kx_baseLabel
 let sb = new SizedBigInt(1);
-
-for (let i of ["4h","16h","4js","8js","16js","32hex","32nvu","32rfc","32ghs"]) {
-  let v = sb.toString(i) // cache refresh
+// cache refresh:
+// for (let i of Object.keys(SizedBigInt.kx_baseLabel)) {let v = sb.toString(i)}
+// Show all base definitions (dataset), without loss of regexes:
+let x = JSON.parse(JSON.stringify(SizedBigInt.kx_baseLabel))
+for (var i of Object.keys(x)) if (SizedBigInt.kx_baseLabel[i].regex) {
+ x[i].regex    = String(SizedBigInt.kx_baseLabel[i].regex)
+ x[i].regex_b2 = String(SizedBigInt.kx_baseLabel[i].regex_b2)
 }
-console.log(SizedBigInt.kx_baseLabel)
+console.log (JSON.stringify(x,null,2));
+
 
 /*
 // Using array position as translator. See SQL.

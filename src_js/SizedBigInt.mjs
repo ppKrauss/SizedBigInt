@@ -412,7 +412,7 @@ export default class SizedBigInt {
       if (r.isDefault && i!=r.base) SizedBigInt.kx_baseLabel[String(r.base)] = {isAlias: i};
       aux = String(r.bitsPerDigit) +','+ r.bitsPerDigit;
       if (i!='2')
-        r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})*)'+(r.isHierar?'([01]*)':'')+'$');
+        r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})'+(r.isHierar?'*)([01]*)':'+)')+'$');
       r.label = i
     } // \for
   }

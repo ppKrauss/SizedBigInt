@@ -2,9 +2,11 @@
 
 Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) for Javascript implementations (using native BigInts), to represent hashes, labels and hierarchical indexes.
 
-* For main implementation, see  [src/SizedBigInt.mjs](src/SizedBigInt.mjs), runs with NodeJS and main browsers.
+* For main implementation, see  [src_js/SizedBigInt.mjs](src_js/SizedBigInt.mjs), runs with NodeJS and main browsers.
 
-* For demos and simplified implementations, see  [src](src). The assert files are at [data/assert*.txt](data).
+* For demos and simplified implementations, see  [src_js](src_js). The assert files are at [data/assert*.txt](data).
+
+* SQL implementation: see [src_sql](src_sql).
 
 * Text, etc. under construction. **See [PDF](http://osm.codes/_foundations/art1.pdf)** or help [at this link to **improve the text of foundations**](https://docs.google.com/document/d/19_X_QXpY56-72Aw7voWoPXclcGuZi7fosCNDj6uOcQM/).
 
