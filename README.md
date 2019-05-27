@@ -1,10 +1,8 @@
-# SizedBigInt
+# Sized Naturals
 
-Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) for Javascript implementations (using native BigInts), to represent hashes, labels and hierarchical indexes.
+Sized Naturals are like Natural numbers, but  for hierarchical labeling, where `0` and `00` are distinct entities.
 
-* For main implementation, see  [src_js/SizedBigInt.mjs](src_js/SizedBigInt.mjs), runs with NodeJS and main browsers.
-
-* For demos and simplified implementations, see  [src_js](src_js). The assert files are at [data/assert*.txt](data).
+* Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) for Javascript implementations (using native BigInts), to represent hashes, labels and hierarchical indexes. <br/>For main implementation, see  [src_js/SizedBigInt.mjs](src_js/SizedBigInt.mjs), runs with NodeJS and main browsers.<br/> For demos and simplified implementations, see  [src_js](src_js). The assert files are at [data/assert*.txt](data).
 
 * SQL implementation: see [src_sql](src_sql).
 
@@ -168,4 +166,6 @@ the prefix will be translated to usual hexadecimal number, and the suffix, when 
 
 ------
 
-&#160;&#160;Contents, data and source-code of this git repository are dedicated to the public domain.<br/>&#160;&#160;[![](assets/CC0-logo-200px.png)](https://creativecommons.org/publicdomain/zero/1.0/)
+&#160;&#160; The textual contents, images and datasets of this git repository are dedicated to the public domain.<br/>&#160;&#160;[![](assets/CC0-logo-200px.png)](https://creativecommons.org/publicdomain/zero/1.0/)
+
+Algorithms and software source-code licensed as [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0).
