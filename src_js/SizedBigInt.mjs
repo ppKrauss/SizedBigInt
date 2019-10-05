@@ -167,11 +167,9 @@ export default class SizedBigInt {
     let t = typeof val
     let isNum = (t=='number')
     if (t == 'bigint' || isNum) {
-      if (isNum)  this.val =
-        maxBits? BigInt.asUintN( maxBits, String(Math.abs(val)) )
-        : BigInt( String(val) );
-      else this.val = val; //maxBits? BigInt.asUintN( maxBits, val ) : val;
-      let l = this.val.toString(2).length  // ? check https://stackoverflow.com/q/54758130/287948
+      if (isNum && !maxBits)  this.val = BigInt( val>>>0 ); // ~ BigInt.asUintN(32,val)
+      else this.val = maxBits? BigInt.asUintN( maxBits, val ) : val;
+      let l = this.val.toString(2).length  // as https://stackoverflow.com/q/54758130/287948
       this.bits = bits? bits: l;
       if (l>this.bits)
         throw new Error("invalid input value, bigger than input bit-length");
