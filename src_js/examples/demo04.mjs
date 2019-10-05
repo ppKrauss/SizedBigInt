@@ -3,7 +3,7 @@
 //  node  --experimental-modules demo04.mjs |more
 //
 'use strict';
-import SizedBigInt from './SizedBigInt.mjs'; // change to Opt1
+import SizedBigInt from '../SizedBigInt.mjs'; // change to Opt1
 
 // configs:
 const sp = ' '

@@ -2,7 +2,7 @@
 
 Sized Naturals are like Natural numbers, but  for hierarchical labeling, where `0` and `00` are distinct entities.
 
-* Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) for Javascript implementations (using native BigInts), to represent hashes, labels and hierarchical indexes. <br/>For main implementation, see  [src_js/SizedBigInt.mjs](src_js/SizedBigInt.mjs), runs with NodeJS and main browsers.<br/> For demos and simplified implementations, see  [src_js](src_js). The assert files are at [data/assert*.txt](data).
+* Sized BigInt's are [bit strings](https://en.wikipedia.org/wiki/Bit_array#Language_support) for Javascript implementations (using native BigInts), to represent hashes, labels and hierarchical indexes. <br/>For main implementation, see  [src_js/SizedBigInt.mjs](src_js/SizedBigInt.mjs), runs with NodeJS and main browsers.<br/> For demos and simplified implementations, see  [src_js/examples](src_js/examples). The assert files are at [data/assert*.txt](data).
 
 * SQL implementation: see [src_sql](src_sql).
 
@@ -26,12 +26,12 @@ The following examples  can be mathematically described as a **finite sets** of 
 
 * The same set <i>X</i><sub>8</sub> without some (non-compatible) items, expressed in [quaternary (base4)](https://en.wikipedia.org/wiki/Quaternary_numeral_system): <br/><i>Y</i><sub>8</sub>=&nbsp;{`0`, `00`, `000`, `0000`, `0001`, `0002`, `0003`, `001`, `0010`, `0011`, ..., `3333`}.
 
-* Ordering. The order in ordinary mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **pseudo-numeric order**, using the bit-length as first criterium and numeric order as second.
+* Ordering. The order in ordinary mathematical *sets* is arbitrary, but to group or list elements we can adopt some order.  The main ordering options for typical SizedBigInts are the **lexicographic order**, to enhance "same prefix" grouping or hierarchy; and the **pseudo-numeric order**. Using the bit-length as default criterium and numeric order as optional.
 
 Here a set of elements illustrated with different representations, listed by lexicographic order of the binary representation:
 ```
                     Representation   
-    (size,value)   Binary                   Base4
+    (size,value)   BitString                   Base4
     (1,0)	    0                        ?
     (2,0)	    00                       0
     (3,0)	    000                      ?
@@ -80,7 +80,7 @@ The solution proposed here is to use a fake (optional) final digit that represen
 Listing some bit strings and its base4h representations.
 
 ```
-    (size,value)    Binary                   Base4h
+    (size,value)    BitString                   Base4h
     (1,0)	    0                        G
     (2,0)	    00                       0
     (3,0)	    000                      0G
@@ -125,28 +125,28 @@ The name of this new representation is **Base16h**, because it is the ordinary B
 &nbsp;&nbsp; TABLE-3
 
 ```
-value    Binary     Base16h
-(1,0)	0       	G
-(2,0)	00      	I
-(3,0)	000     	M
-(4,0)	0000    	0
-(5,0)	00000   	0G
-(6,0)	000000  	0I
-(7,0)	0000000 	0M
-(8,0)	00000000	00
-(8,1)	00000001	01
-(7,1)	0000001 	0N
-(8,2)	00000010	02
-(8,3)	00000011	03
-(6,1)	000001  	0J
+(size,value)  	BitString     Base16h
+(1,0)		0       	G
+(2,0)		00      	I
+(3,0)		000     	M
+(4,0)		0000    	0
+(5,0)		00000   	0G
+(6,0)		000000  	0I
+(7,0)		0000000 	0M
+(8,0)		00000000	00
+(8,1)		00000001	01
+(7,1)		0000001 	0N
+(8,2)		00000010	02
+(8,3)		00000011	03
+(6,1)		000001  	0J
 ...
-(6,63) 	111111  	fL
-(7,126)	1111110 	fS
-(8,252)	11111100	fc
-(8,253)	11111101	fd
-(7,127)	1111111 	fT
-(8,254)	11111110	fe
-(8,255)	11111111	ff
+(6,63) 		111111  	fL
+(7,126)		1111110 	fS
+(8,252)		11111100	fc
+(8,253)		11111101	fd
+(7,127)		1111111 	fT
+(8,254)		11111110	fe
+(8,255)		11111111	ff
 ```
 
 To translate from a binary string with *b* bits, there are `b % 4` last bits to be translated as special digits. Splitting the value as binary prefix (`part[0]`) and suffix (`part[1]` with 1, 2 or 3 last bits),

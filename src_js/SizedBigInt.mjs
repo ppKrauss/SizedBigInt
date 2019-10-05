@@ -5,8 +5,10 @@
  * Original source at https://github.com/ppKrauss/SizedBigInt
  *  and foundations at http://osm.codes/_foundations/art1.pdf
  */
- /*
- Copyright 2019 by ppkrauss and collaborators.
+
+ /* - - - - - - - - - - - - - - - - - - - - - - - -
+
+ Copyright 2019 by Peter Krauss (github.com/ppkrauss) and collaborators.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -19,9 +21,13 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- */
 
-export default class SizedBigInt {
+- - - - - - - - - - - - - - - - - - - - - - - - - */
+
+
+// export default  // uncomment this line for module behaviour
+
+class SizedBigInt {
 
   constructor(val,radix,bits,maxBits=null) {
     SizedBigInt.kx_RefreshDefaults(); // global cache once.
@@ -95,7 +101,7 @@ export default class SizedBigInt {
    */
    splitCloning(bits) {
     if (!bits || bits<0 || bits>this.bits) return null;
-    let strbin = this.toBinaryString()
+    let strbin = this.toBitString()
     return [
       new SizedBigInt( strbin.slice(0,bits), 2 ),
       new SizedBigInt( strbin.slice(bits), 2 )
@@ -109,14 +115,14 @@ export default class SizedBigInt {
    */
   truncCloning(bits) {
     if (!bits || bits<0 || bits>this.bits) return this;
-    return this.fromBinaryString( this.toBinaryString().slice(0,bits) );
+    return this.fromBitString( this.toBitString().slice(0,bits) );
   }
 
   truncCloning2(bits) { // is cloning?
     if (!bits || bits<0 || bits>this.bits)
 	return new SizedBigInt();
     else
-	return new SizedBigInt( this.toBinaryString().slice(0,bits), 2 );
+	return new SizedBigInt( this.toBitString().slice(0,bits), 2 );
   }
 
   // // //
@@ -124,7 +130,7 @@ export default class SizedBigInt {
 
   fromNull() { this.val=null; this.bits=0; return this; }
 
-  fromBinaryString(strval, maxBits=null) {
+  fromBitString(strval, maxBits=null) {
     if (!strval) return this.fromNull();
     this.bits = strval.length
     if (maxBits && this.bits>maxBits)
@@ -145,7 +151,7 @@ export default class SizedBigInt {
     let r = SizedBigInt.baseLabel(radix,false)
     if (!strval) return this.fromNull()
     if (r.base==2)
-      return this.fromBinaryString(strval,maxBits);
+      return this.fromBitString(strval,maxBits);
     // else if (r.label='16js') _fromHexString(), to optimize.
     let trLabel = r.label+'-to-2'
     if (!SizedBigInt.kx_tr[trLabel]) SizedBigInt.kx_trConfig(r.label);
@@ -153,7 +159,7 @@ export default class SizedBigInt {
     let strbin = ''
     for (let i=0; i<strval.length; i++)
       strbin += tr[ strval.charAt(i) ]
-    return this.fromBinaryString(strbin,maxBits)
+    return this.fromBitString(strbin,maxBits)
   }
 
   /**
@@ -193,7 +199,7 @@ export default class SizedBigInt {
 
   get value() { return [this.bits,this.val] }
 
-  toBinaryString(){
+  toBitString(){
     return (this.val===null)
       ? ''
       : this.val.toString(2).padStart(this.bits,'0');
@@ -209,7 +215,7 @@ export default class SizedBigInt {
     let rTo = SizedBigInt.baseLabel(radix,false)
     if (this.val===null || (!rTo.isHierar && this.bits % rTo.bitsPerDigit != 0))
       return ''
-    let b = this.toBinaryString()
+    let b = this.toBitString()
     if (rTo.base==2)
       return b
     let trLabel = '2-to-'+rTo.label
@@ -239,8 +245,8 @@ export default class SizedBigInt {
        [a, b] = [b, a];
      if ( cmpLex===true || SizedBigInt.compare_lexicographic===true) {
       //  direct explicit lexicographic order:
-      let str_a = a.toBinaryString()
-      let str_b = b.toBinaryString()
+      let str_a = a.toBitString()
+      let str_b = b.toBitString()
       return (str_a>str_b)? 1: ( (str_a==str_b)? 0: -1 )
      } else { // numeric order:
        let bitsDiff = a.bits - b.bits
@@ -278,7 +284,7 @@ export default class SizedBigInt {
      let t = this.bits
      if (!t) return null;
      if (!maxBits) maxBits=t; else if (t>maxBits) return null;
-     let x = this.toBinaryString()
+     let x = this.toBitString()
      if (t<maxBits) return x+'0';
      t--
      if (x[t]=='0') return x.slice(0,t)+'1';
@@ -344,6 +350,21 @@ export default class SizedBigInt {
     return retLabel? r.label: r;
   }
 
+  /**
+   * Division N/D. Returns integer part and "normalized fractional part"
+   * @param N BigInt, positive numerator.
+   * @param D BigInt, positive non-zero denominator.
+   * @param P BigInt, power to be used in 2**P, with P>0.
+   * @return array [integer_part , fractional_part]=[IP,FP] where F=FP*2^P.
+   */
+  static bigint_div(N,D,P=BigInt(64)) {
+    let I = N/D  // ideal a function that returns R and Q.
+    let R = N-I*D // compare with performance of R=N%D
+    let F=((BigInt(2)**P)*R)/D
+    return [I,F]
+  }
+
+
   // // //
   // Iternal use, cache-manager methods:
 
@@ -356,8 +377,8 @@ export default class SizedBigInt {
    if (!SizedBigInt.kx_tr) {
      SizedBigInt.kx_tr={};
      SizedBigInt.kx_baseLabel = {
-       "2":   { base:2, alphabet:"01", ref:"ECMA-262" }
-       ,"2h":  {
+       "2":   { base:2, alphabet:"01", ref:"ECMA-262" } // never used here, check if necessary to implement
+       ,"2h":  {  // BitString representation
          base:2, alphabet:"01",
          isDefault:true,
          isHierar:true, // use leading zeros (0!=00).

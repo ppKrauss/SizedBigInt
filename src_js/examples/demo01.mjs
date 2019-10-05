@@ -10,7 +10,7 @@
 const fileOpts = {
    opt1: './SizedBigInt-didacticOpt1.mjs'
   ,opt2: './SizedBigInt-didacticOpt2.mjs'
-  ,main: './SizedBigInt.mjs'
+  ,main: '../SizedBigInt.mjs'
 };
 var b4h;
 var lst = []
@@ -59,7 +59,7 @@ import(fileOpts[process.argv[2]] || fileOpts.main ).then(({default: SizedBigInt}
   console.log("\t--- DEBUG2 SORT DESC lexicographic:")
   SizedBigInt.sort(lst,true,true)  // lexOrder, descOrder
   for(let i of lst) console.log(i.toString('4h'))
-  
+
   console.log("\t--- DEBUG2 SORT DESC numeric:")
   SizedBigInt.sort(lst,false,true)  // lexOrder, descOrder
   for(let i of lst) console.log(i.toString('4h'))

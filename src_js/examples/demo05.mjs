@@ -15,7 +15,7 @@
  A4L.  s||x||k  and cast to left. Fixed length, int8 # 2, s and k.
 */
 'use strict';
-// import SizedBigInt from './SizedBigInt.mjs';
+// import SizedBigInt from '../SizedBigInt.mjs';
 function qt(x) { return "'"+x+"'" }
 
 const s='0'

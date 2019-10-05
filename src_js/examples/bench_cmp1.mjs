@@ -12,7 +12,7 @@ const fileOpts = {
    opt1: './SizedBigInt-didacticOpt1.mjs'
   ,opt2: './SizedBigInt-didacticOpt2.mjs'
   ,opt3: './sOpt2.mjs'
-  ,main: './SizedBigInt.mjs'
+  ,main: '../SizedBigInt.mjs'
 };
 var b4h;
 var lst = []
