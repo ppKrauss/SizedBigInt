@@ -1,4 +1,32 @@
-// export default  // uncomment this line for module behaviour
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: SizedBigInt.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: SizedBigInt.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// export default  // uncomment this line for module behaviour
 
 /**
  * Sized BigInt's (SizedBigInt) are arbitrary-precision integers with defined number of bits.
@@ -14,7 +42,7 @@ class SizedBigInt {
   constructor(val,radix,bits,maxBits=null) {
     SizedBigInt.kx_RefreshDefaults(); // global cache once.
     let t = typeof val;
-    if (val && t=='object') { // not-null object
+    if (val &amp;&amp; t=='object') { // not-null object
        if (val instanceof SizedBigInt)
         [val,radix,bits,maxBits]=[val.val,null,val.bits,null]; // clone()
        else if (val instanceof Array)
@@ -84,7 +112,7 @@ class SizedBigInt {
    * @return {array} - two new SizedBigInts. Null when invalid bits.
    */
    splitCloning(bits) {
-    if (!bits || bits<0 || bits>this.bits) return null;
+    if (!bits || bits&lt;0 || bits>this.bits) return null;
     let strbin = this.toBitString()
     return [
       new SizedBigInt( strbin.slice(0,bits), 2 ),
@@ -98,12 +126,12 @@ class SizedBigInt {
    * @return null on error or SizedBigInt, trucated clone.
    */
   truncCloning(bits) {
-    if (!bits || bits<0 || bits>this.bits) return this;
+    if (!bits || bits&lt;0 || bits>this.bits) return this;
     return this.fromBitString( this.toBitString().slice(0,bits) );
   }
 
   truncCloning2(bits) { // is cloning?
-    if (!bits || bits<0 || bits>this.bits)
+    if (!bits || bits&lt;0 || bits>this.bits)
 	return new SizedBigInt();
     else
 	return new SizedBigInt( this.toBitString().slice(0,bits), 2 );
@@ -117,7 +145,7 @@ class SizedBigInt {
   fromBitString(strval, maxBits=null) {
     if (!strval) return this.fromNull();
     this.bits = strval.length
-    if (maxBits && this.bits>maxBits)
+    if (maxBits &amp;&amp; this.bits>maxBits)
       throw new Error(`bit-length ${this.bits} exceeded the limit ${maxBits}`);
     this.val = BigInt("0b"+strval)
     return this
@@ -141,7 +169,7 @@ class SizedBigInt {
     if (!SizedBigInt.kx_tr[trLabel]) SizedBigInt.kx_trConfig(r.label);
     let tr = SizedBigInt.kx_tr[trLabel]
     let strbin = ''
-    for (let i=0; i<strval.length; i++)
+    for (let i=0; i&lt;strval.length; i++)
       strbin += tr[ strval.charAt(i) ]
     return this.fromBitString(strbin,maxBits)
   }
@@ -157,13 +185,13 @@ class SizedBigInt {
     let t = typeof val
     let isNum = (t=='number')
     if (t == 'bigint' || isNum) {
-      if (isNum && !maxBits)  this.val = BigInt( val>>>0 ); // ~ BigInt.asUintN(32,val)
+      if (isNum &amp;&amp; !maxBits)  this.val = BigInt( val>>>0 ); // ~ BigInt.asUintN(32,val)
       else this.val = maxBits? BigInt.asUintN( maxBits, val ) : val;
       let l = this.val.toString(2).length  // as https://stackoverflow.com/q/54758130/287948
       this.bits = bits? bits: l;
       if (l>this.bits)
         throw new Error("invalid input value, bigger than input bit-length");
-      if (maxBits && this.bits>maxBits)
+      if (maxBits &amp;&amp; this.bits>maxBits)
         throw new Error(`bit-length ${this.bits} exceeded the limit ${maxBits}`);
       return this
     } else // null, undefined, string, etc.
@@ -198,7 +226,7 @@ class SizedBigInt {
     if (radix===undefined)
       return `[${this.bits},${this.val}]`; // Overrides Javascript toString()
     let rTo = SizedBigInt.baseLabel(radix,false)
-    if (this.val===null || (!rTo.isHierar && this.bits % rTo.bitsPerDigit != 0))
+    if (this.val===null || (!rTo.isHierar &amp;&amp; this.bits % rTo.bitsPerDigit != 0))
       return ''
     let b = this.toBitString()
     if (rTo.base==2)
@@ -207,7 +235,7 @@ class SizedBigInt {
     if (!SizedBigInt.kx_tr[trLabel]) SizedBigInt.kx_trConfig(rTo.label);
     let tr = SizedBigInt.kx_tr[trLabel]
     let r = ''
-    for (let i=0; i<b.length; i+=rTo.bitsPerDigit)
+    for (let i=0; i&lt;b.length; i+=rTo.bitsPerDigit)
       r += tr[ b.slice(i,i+rTo.bitsPerDigit) ]
     return r;
   }
@@ -270,7 +298,7 @@ class SizedBigInt {
      if (!t) return null;
      if (!maxBits) maxBits=t; else if (t>maxBits) return null;
      let x = this.toBitString()
-     if (t<maxBits) return x+'0';
+     if (t&lt;maxBits) return x+'0';
      t--
      if (x[t]=='0') return x.slice(0,t)+'1';
      else return (x==''.padEnd(maxBits,'1'))? (cycle?'0':null): x.slice(1);
@@ -312,7 +340,7 @@ class SizedBigInt {
    */
   static ilog2(n) {
     return n.toString(2).length - (
-      (n<0n)
+      (n&lt;0n)
       ? 2 //discard bit of minus
       : 1
     );
@@ -420,7 +448,7 @@ class SizedBigInt {
       if (!r.bitsPerDigit) r.bitsPerDigit = Math.log2(r.base);
       if (!r.alphabet) throw new Error(`err2, invalid null alphabet`);
       if (!r.isHierar) r.isHierar = false;
-      else if (r.alphabet.length<(r.base*2-2))
+      else if (r.alphabet.length&lt;(r.base*2-2))
         throw new Error(`err3, invalid hierarchical alphabet in "${baseLabel}": ${r.alphabet}`);
       let alphaRgx = r.alphabet.replace('-','\\-');
       if (!r.regex)  r.regex =  '^(['+ alphaRgx +']+)$';
@@ -429,7 +457,7 @@ class SizedBigInt {
       let aux = (r.case===false)? 'i': '';
       if (typeof r.regex =='string')  r.regex = new RegExp(r.regex,aux);
       if (r.isDefault===undefined)    r.isDefault=false;
-      if (r.isDefault && i!=r.base) SizedBigInt.kx_baseLabel[String(r.base)] = {isAlias: i};
+      if (r.isDefault &amp;&amp; i!=r.base) SizedBigInt.kx_baseLabel[String(r.base)] = {isAlias: i};
       aux = String(r.bitsPerDigit) +','+ r.bitsPerDigit;
       if (i!='2')
         r.regex_b2 = new RegExp('^((?:[01]{'+ aux +'})'+(r.isHierar?'*)([01]*)':'+)')+'$');
@@ -448,14 +476,14 @@ class SizedBigInt {
     if (r.base>64) throw new Error(`Base-${r.base} is invalid`);
     let label = r.label + '-to-2'
     if (!SizedBigInt.kx_tr[label]) SizedBigInt.kx_tr[label] = {};
-    for (let i=0; i<r.base; i++) { // scans alphabet
+    for (let i=0; i&lt;r.base; i++) { // scans alphabet
         let c = r.alphabet.charAt(i)
         SizedBigInt.kx_tr[label][c] = i.toString(2).padStart(r.bitsPerDigit,'0')
     }
     if (r.isHierar) {
       let alphaPos = r.base;
-      for(var bits=1; bits<r.bitsPerDigit; bits++)
-        for (let i=0; i<2**bits; i++) {
+      for(var bits=1; bits&lt;r.bitsPerDigit; bits++)
+        for (let i=0; i&lt;2**bits; i++) {
           let c = r.alphabet.charAt(alphaPos)
           SizedBigInt.kx_tr[label][c] = i.toString(2).padStart(bits,'0')
           alphaPos++
@@ -484,3 +512,26 @@ class SizedBigInt {
  limitations under the License.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - */
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="SizedBigInt.html">SizedBigInt</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by  JSDoc v3.6 
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
