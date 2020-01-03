@@ -1,7 +1,7 @@
 // // // // // // //
 // Demonstating basic operations, valid also for didactic options.
 // USE ON TERMINAL: opt1, opt2 or main,
-//  node  --experimental-modules demo01.mjs opt1 > chk_assert01.txt
+//  node  --experimental-modules demo01.js opt1 > chk_assert01.txt
 //  diff ../data/assert01.txt chk_assert01.txt
 //
 
@@ -10,7 +10,7 @@
 const fileOpts = {
    opt1: './SizedBigInt-didacticOpt1.mjs'
   ,opt2: './SizedBigInt-didacticOpt2.mjs'
-  ,main: '../SizedBigInt.mjs'
+  ,main: '../SizedBigInt.js'
 };
 var b4h;
 var lst = []

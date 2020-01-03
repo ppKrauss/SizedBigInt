@@ -1,7 +1,7 @@
-// node  --experimental-modules demo02.mjs
+// node  --experimental-modules demo02.js
 
 'use strict';
-import SizedBigInt from '../SizedBigInt.mjs'; // change to Opt1
+import SizedBigInt from '../SizedBigInt.js';
 
 console.log("[l,n]\tBase4h\tBase16h\tBase32")
 const reuse = new SizedBigInt(0)
